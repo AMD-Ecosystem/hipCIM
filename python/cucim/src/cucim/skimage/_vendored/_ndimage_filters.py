@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2015 Preferred Networks, Inc.
 # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0 AND MIT
+#
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 """A vendored subset of cupyx.scipy.ndimage._filters"""
 

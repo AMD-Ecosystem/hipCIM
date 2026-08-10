@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
+#
 """
 Tests for batch ROI decoding using nvImageCodec v0.7.0+ API.
 

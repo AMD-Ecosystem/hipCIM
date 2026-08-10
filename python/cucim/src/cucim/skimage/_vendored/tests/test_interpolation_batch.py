@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2015 Preferred Networks, Inc.
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 """Extensions to CuPy's own test cases for new features in the vendored code.
 

@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2015 Preferred Networks, Inc.
 # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0 AND MIT
+#
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 """version of cupy.pad that dispatches to elementwise kernels for some boundary
 modes: {'edge', 'wrap', 'symmetric', 'reflect'}.

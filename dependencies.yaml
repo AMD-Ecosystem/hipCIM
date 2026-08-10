@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 # Dependency list for https://github.com/rapidsai/dependency-file-generator
 files:

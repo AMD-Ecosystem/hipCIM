@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Test and Coverage Comparison Tools
 
 The following two Python scripts are used for comparing test results and code

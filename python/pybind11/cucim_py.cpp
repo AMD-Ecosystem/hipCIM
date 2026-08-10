@@ -1,6 +1,8 @@
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2020-2023, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
  */
 
 #include "cucim_py.h"

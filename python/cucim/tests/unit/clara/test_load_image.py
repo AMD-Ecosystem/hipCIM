@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2021, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 #
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
+#
 
 import importlib.util
 

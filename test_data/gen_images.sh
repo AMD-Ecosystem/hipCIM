@@ -1,6 +1,8 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: Copyright (c) 2021-2025, NVIDIA CORPORATION. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Modifications Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
