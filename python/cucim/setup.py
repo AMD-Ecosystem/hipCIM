@@ -94,11 +94,18 @@ def _detect_gpu_archs():
 
 
 def _rocm_requirement():
-    """The ``rocm`` SDK requirement for the [rocm] extra: the runtime libraries
-    plus a device extra per targeted GPU arch, pinned to the built ROCm series,
-    e.g. ``rocm[libraries,device-gfx942,device-gfx950]==7.14.*``.
+    """The ``rocm`` SDK requirement for the [rocm] extra: the runtime libraries,
+    the development tools, plus a device extra per targeted GPU arch, pinned to
+    the built ROCm series, e.g.
+    ``rocm[libraries,devel,device-gfx942,device-gfx950]==7.14.*``.
+
+    ``devel`` is required because amd-cupy JIT-compiles HIP kernels at runtime via
+    ``hipcc``; without the ROCm development tree the first GPU operation fails with
+    ``clang++: not found``.
     """
-    features = ["libraries"] + [f"device-{arch}" for arch in _detect_gpu_archs()]
+    features = ["libraries", "devel"] + [
+        f"device-{arch}" for arch in _detect_gpu_archs()
+    ]
     return f"rocm[{','.join(features)}]=={_detect_rocm_series()}.*"
 
 

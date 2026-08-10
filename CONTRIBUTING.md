@@ -97,13 +97,13 @@ If codespell is finding false positives in newly added code, the `ignore-words-l
 Compiler requirements:
 
 * `gcc`     version 13.0+
-* `hipcc`   (ROCm 7.0+)
+* `hipcc`   (ROCm 10.0+)
 * `cmake`   version 4.0+
 
 GPU requirements:
 
-* ROCm 7.0+
-* AMD GPU with supported architecture (gfx90a, gfx942, etc.)
+* ROCm 10.0+
+* AMD GPU with supported architecture (gfx90a, gfx942, gfx950, etc.)
 
 You can obtain ROCm from [https://rocm.docs.amd.com/projects/install-on-linux/en/latest/](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/).
 

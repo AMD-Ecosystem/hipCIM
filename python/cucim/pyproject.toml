@@ -121,8 +121,13 @@ version = {file = "src/hipcim/HIPCIM_VERSION"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# Apply to every discovered package ("*"). The previous placeholder key
+# "mypkg" matched no real package, so HIPCIM_VERSION (read at runtime by
+# cucim/_version.py) was omitted from wheels built without a .git dir
+# (e.g. Docker builds where .dockerignore excludes .git and setuptools_scm's
+# git file-finder can't pick it up).
 [tool.setuptools.package-data]
-mypkg = ["*.pyi", "*.h", "*.cu", "HIPCIM_VERSION"]
+"*" = ["*.pyi", "*.h", "*.cu", "HIPCIM_VERSION", "GIT_COMMIT"]
 
 [tool.pydistcheck]
 select = [

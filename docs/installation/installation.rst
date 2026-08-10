@@ -17,13 +17,18 @@ This topic discusses how to install hipCIM using the following options:
 System requirements
 ********************
 
-+--------------+----------------+----------------+------------------+
-| ROCm version | Ubuntu version | Python version | AMD Instinct GPU |
-+==============+================+================+==================+
-| 7.0.2        | 24.04          | 3.12           | MI300A           |
-+--------------+----------------+----------------+------------------+
-| 6.4.3        | 22.04          | 3.10           | MI325X           |
-+--------------+----------------+----------------+------------------+
++--------------+----------------+----------------+----------------------------------+
+| ROCm version | Ubuntu version | Python version | AMD Instinct GPU (tested)        |
++==============+================+================+==================================+
+| 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, MI350X, MI355X   |
++--------------+----------------+----------------+----------------------------------+
+
+.. note::
+
+   The Ubuntu 24.04 entry above is the tested reference configuration (and the
+   required OS family for a :ref:`source build <source-build>`). The prebuilt
+   ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any
+   glibc >= 2.28 Linux distribution, as described under :ref:`install-package`.
 
 Setting up the environment
 ***************************
@@ -32,60 +37,50 @@ To set up the environment for installing hipCIM, follow these steps:
 
 1. Optional: Use ROCm Docker to get started.
 
-   - For ROCm 7.0.2, run:
+   ROCm 10.0 is installed from the pip index (see step 3), so a plain Ubuntu
+   24.04 container can be used:
 
-     .. code-block:: shell
-
-      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true   \
-      --shm-size=128GB --network=host --device=/dev/kfd     \
-      --device=/dev/dri --group-add video -it               \
-      -v $HOME:$HOME  --name ${LOGNAME}_rocm                \
-                                       rocm/dev-ubuntu-24.04:7.0.2-complete
-
-   - For ROCm 6.4.3, run:
-
-     .. code-block:: shell
+   .. code-block:: shell
 
       docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true   \
       --shm-size=128GB --network=host --device=/dev/kfd     \
       --device=/dev/dri --group-add video -it               \
       -v $HOME:$HOME  --name ${LOGNAME}_rocm                \
-                                       rocm/dev-ubuntu-22.04:6.4.3-complete
+                                       ubuntu:24.04
 
    For bare metal, skip this step.
 
-2. Install system dependencies. For both ROCm 6.4.3 and 7.0.2, run:
+2. Install the non-ROCm system dependencies (ROCm itself is installed from the
+   public pip index in step 3):
 
    .. code-block:: shell
 
       apt-get update && \
-      apt-get install -y software-properties-common lsb-release gnupg && \
+      apt-get install -y software-properties-common lsb-release gnupg curl && \
       apt-key adv --fetch-keys https://apt.kitware.com/keys/kitware-archive-latest.asc && \
       add-apt-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
-      mkdir -p /etc/apt/keyrings && \
-      curl -fsSL https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor -o /etc/apt/keyrings/rocm.gpg && \
-      echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/6.2.1/ubuntu jammy main proprietary" | tee /etc/apt/sources.list.d/amdgpu.list && \
       apt-get update && \
       apt-get install -y git wget gcc g++ ninja-build git-lfs \
-                     yasm libopenslide-dev python3 python3-venv \
-                     python3-dev libpython3-dev \
-                     cmake rocjpeg rocjpeg-dev rocthrust-dev \
-                     hipcub hipblas hipblas-dev hipfft hipsparse \
-                     hiprand rocsolver rocrand-dev rocm-hip-sdk
+                     yasm libopenslide-dev libwebp-dev libzstd-dev \
+                     python3 python3-venv python3-dev libpython3-dev cmake
 
-3. Create the Python virtual environment.
+3. Create the Python virtual environment and install the ROCm 10.0 SDK from the
+   public pip index into it.
 
    .. code-block:: shell
 
       python3 -m venv hipcim_dev
       source hipcim_dev/bin/activate
+      pip install --upgrade pip
+      pip install "rocm[libraries,devel]" --index-url https://repo.amd.com/rocm/whl-multi-arch/
 
-4. Set the environment variables:
+4. Set the environment variables. ROCm 10.0 is a pip SDK, so resolve its root
+   with ``rocm-sdk``:
 
    .. code-block:: shell
 
-      export ROCM_HOME=/opt/rocm
-      export AMDGPU_TARGETS=gfx942
+      export ROCM_HOME=$(rocm-sdk path --root)
+      export AMDGPU_TARGETS="gfx942;gfx950"
 
 .. _source-build:
 
@@ -133,11 +128,9 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
 
       .. code-block:: shell
 
-         # For ROCm 7.0.2
-         python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-7.0.2/simple/
-
-         # For ROCm 6.4.3
-         python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/simple
+         # Install CuPy from the public AMD index first
+         pip install amd-cupy --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
+         python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
 
 6. Verify the installation.
 
@@ -162,20 +155,34 @@ Installing hipCIM using AMD PyPI (recommended)
 
 Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <https://pypi.amd.com/simple/>`_. This section discusses how to install hipCIM using this package index. hipCIM users should use this installation method. hipCIM developers should use the :ref:`source-build`.
 
-1. Install hipCIM.
+.. note::
 
-   - For ROCm 7.0.2, run:
+   The prebuilt ``amd-hipcim`` wheels are built against the `manylinux_2_28
+   <https://github.com/pypa/manylinux>`_ standard (glibc 2.28) and repaired with
+   ``auditwheel``, so they are portable across any glibc >= 2.28 Linux
+   distribution (for example Ubuntu 20.04+, Debian 10+, RHEL/AlmaLinux/Rocky 8+,
+   and SUSE), not just Ubuntu 24.04. Any distribution providing Python 3.12 and
+   glibc >= 2.28 works; the Ubuntu 24.04 steps are one convenient, tested setup.
+
+1. Install hipCIM. There are two prebuilt options:
+
+   - If ROCm 10.0 is already available (installed at the system level or in the
+     active virtual environment), install ``amd-hipcim``. It pulls in CuPy
+     (``amd-cupy``), a hipCIM dependency, from the public AMD index:
 
      .. code-block:: shell
 
-      pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-7.0.2/simple/
+      pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
 
-   - For ROCm 6.4.3, run:
+   - If ROCm 10.0 is not installed (no system ROCm and none in the virtual
+     environment), install ``amd-hipcim[rocm]``. The ``rocm`` extra additionally
+     pulls in the ROCm runtime, so provide both the CuPy and ROCm public indexes:
 
      .. code-block:: shell
 
-      pip install amd-cupy --extra-index-url=https://pypi.amd.com/simple
-      pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-6.4.3/simple
+      pip install "amd-hipcim[rocm]" \
+        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+        --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
 
 2. Verify the installation.
 
