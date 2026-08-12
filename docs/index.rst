@@ -1,6 +1,6 @@
 .. meta::
   :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-  :keywords: ROCm-LS, life sciences, hipCIM documentation
+  :keywords: AMD-Ecosystem, life sciences, hipCIM documentation
 
 .. _index:
 
@@ -22,13 +22,13 @@ hipCIM key features include:
 
 - **Extensible toolkit:** Offers both C++ and Python APIs, as well as a flexible mechanism for extensions using plugins.
 
-- **Interoperability:** Can be used with other libraries in the ROCm-LS ecosystem and easily interoperate with libraries like `CuPy <https://cupy.dev/>`_.
+- **Interoperability:** Can be used with other libraries in the AMD Ecosystem and easily interoperate with libraries like `CuPy <https://cupy.dev/>`_.
 
 - **Accelerated workflows:** Helps accelerate workflows in digital pathology and other fields that utilize large, high-resolution images.
 
 In essence, hipCIM provides a versatile platform that bridges diverse hardware ecosystems, enabling greater flexibility and efficiency in deploying advanced image processing workloads.
 
-The code is open and hosted at `<https://github.com/ROCm-LS/hipCIM>`_.
+The code is open and hosted at `<https://github.com/AMD-Ecosystem/hipCIM>`_.
 
 The documentation is structured as follows:
 
@@ -48,7 +48,7 @@ The documentation is structured as follows:
     * `hipCIM blog <https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_
 
 To contribute to hipCIM, refer to
-`Contributing to hipCIM <https://github.com/ROCm-LS/hipCIM/blob/main/CONTRIBUTING.md>`_.
+`Contributing to hipCIM <https://github.com/AMD-Ecosystem/hipCIM/blob/main/CONTRIBUTING.md>`_.
 
 You can find licensing information on the
 :doc:`Licensing <license>` page.
