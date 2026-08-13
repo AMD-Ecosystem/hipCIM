@@ -1,6 +1,6 @@
 .. meta::
    :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-   :keywords: ROCm-LS, life sciences, hipCIM installation
+   :keywords: AMD-Ecosystem, life sciences, hipCIM installation
 
 .. _installing-hipcim:
 
@@ -56,9 +56,11 @@ To set up the environment for installing hipCIM, follow these steps:
    .. code-block:: shell
 
       apt-get update && \
-      apt-get install -y software-properties-common lsb-release gnupg curl && \
-      apt-key adv --fetch-keys https://apt.kitware.com/keys/kitware-archive-latest.asc && \
-      add-apt-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
+      apt-get install -y lsb-release gnupg curl ca-certificates && \
+      curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+          | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+      echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+          > /etc/apt/sources.list.d/kitware.list && \
       apt-get update && \
       apt-get install -y git wget gcc g++ ninja-build git-lfs \
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
@@ -99,7 +101,7 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
 
    .. code-block:: shell
 
-      git clone git@github.com:ROCm-LS/hipCIM.git
+      git clone git@github.com:AMD-Ecosystem/hipCIM.git
       cd hipCIM
 
 3. Install the rest of the dependencies.
@@ -226,8 +228,53 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
       Project-URLs:
          Homepage, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
          Documentation, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
-         Source, https://github.com/ROCm-LS/hipCIM
-         Tracker, https://github.com/ROCm-LS/hipCIM/issues
+         Source, https://github.com/AMD-Ecosystem/hipCIM
+         Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
+
+.. _rocjpeg-runtime:
+
+Runtime dependency: rocJPEG and the amdgpu VA-API driver
+************************************************************
+
+Reading whole-slide images -- Aperio SVS and Philips TIFF -- goes through the
+``cuslide`` plugin, whose GPU JPEG decode path depends on two ROCm runtime
+components:
+
+- ``librocjpeg.so.1`` (AMD rocJPEG), and
+
+- a matching amdgpu VA-API driver, which rocJPEG uses for hardware JPEG
+  decoding.
+
+.. important::
+
+   These are **load-time** dependencies of the ``cuslide`` plugin. If
+   ``librocjpeg.so.1`` (or its VA-API driver) cannot be loaded, the whole
+   ``cuslide`` plugin fails to register -- so even the CPU fallback for SVS and
+   TIFF is lost and hipCIM raises an error such as::
+
+      Cannot find a plugin to handle 'slide.svs'!
+
+When ROCm 10.0 is installed from the AMD pip index (as in
+:ref:`installing-hipcim`), both components ship inside the ROCm SDK wheels under
+``_rocm_sdk_devel/lib`` in ``site-packages``. hipCIM loads them automatically on
+import -- ``cucim.clara`` preloads ``amdhip64`` and ``rocjpeg`` into the global
+symbol namespace through ``rocm_sdk`` (see ``cucim.clara._rocm_init``) -- so no
+extra configuration is normally needed.
+
+If rocJPEG still fails to load (for example, a classic ``/opt/rocm`` install, a
+custom layout, or an environment without the ``rocm`` Python packages), put the
+ROCm SDK library directory on the loader path and point libva at the bundled
+amdgpu driver:
+
+.. code-block:: shell
+
+   # pip/venv ROCm: the _rocm_sdk_devel/lib directory that holds librocjpeg.so.1
+   # and the amdgpu VA-API driver (for a classic install use ${ROCM_PATH}/lib).
+   export ROCM_LIB=$(python -c "import sysconfig, os; print(os.path.join(sysconfig.get_paths()['purelib'], '_rocm_sdk_devel', 'lib'))")
+
+   export LD_LIBRARY_PATH="${ROCM_LIB}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+   export LIBVA_DRIVERS_PATH="${ROCM_LIB}"   # where libva looks for the driver
+   export LIBVA_DRIVER_NAME=amdgpu           # select the amdgpu VA-API driver
 
 Getting started
 ****************

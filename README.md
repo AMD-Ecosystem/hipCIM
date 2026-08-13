@@ -22,9 +22,11 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
 - Install required (non-ROCm) system dependencies
 	```
     apt-get update && \
-        apt-get install -y software-properties-common lsb-release gnupg curl && \
-        apt-key adv --fetch-keys https://apt.kitware.com/keys/kitware-archive-latest.asc && \
-        add-apt-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
+        apt-get install -y lsb-release gnupg curl ca-certificates && \
+        curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+            | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+        echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+            > /etc/apt/sources.list.d/kitware.list && \
         apt-get update && \
         apt-get install -y git wget gcc g++ ninja-build git-lfs \
                       yasm libopenslide-dev libwebp-dev libzstd-dev \
@@ -67,16 +69,17 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
   ```
 - Expected output
   ```
+  Version details: (26, 6, 1, 'dev50', 'g03857c672')
   Name: amd-hipcim
-  Version: 25.10.0
+  Version: 26.6.0
   Summary: hipCIM - an extensible toolkit designed to provide GPU accelerated I/O, computer vision & image processing primitives for N-Dimensional images with a focus on biomedical imaging.
   Home-page: https://rocm.docs.amd.com/projects/hipCIM/en/latest/
   Author: AMD Corporation
-  Author-email:
+  Author-email: 
   License: Apache 2.0
-  Location: /scratch/integration/hipCIM/hipcim_dev/lib/python3.10/site-packages
+  Location: /tmp/hipcim-venv/lib/python3.12/site-packages
   Requires: amd-cupy, click, lazy-loader, numpy, scikit-image, scipy
-  Required-by:
+  Required-by: 
   Metadata-Version: 2.4
   Installer: pip
   Classifiers:
@@ -99,8 +102,8 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
   Project-URLs:
     Homepage, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
     Documentation, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
-    Source, https://github.com/ROCm-LS/hipCIM
-    Tracker, https://github.com/ROCm-LS/hipCIM/issues
+    Source, https://github.com/AMD-Ecosystem/hipCIM
+    Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
   ```
 
 
@@ -143,9 +146,11 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
 - Install required (non-ROCm) system dependencies
   	```
     apt-get update && \
-        apt-get install -y software-properties-common lsb-release gnupg curl && \
-        apt-key adv --fetch-keys https://apt.kitware.com/keys/kitware-archive-latest.asc && \
-        add-apt-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
+        apt-get install -y lsb-release gnupg curl ca-certificates && \
+        curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+            | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+        echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+            > /etc/apt/sources.list.d/kitware.list && \
         apt-get update && \
         apt-get install -y git wget gcc g++ ninja-build git-lfs \
                       yasm libopenslide-dev libwebp-dev libzstd-dev \
@@ -154,7 +159,7 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
 
 - Checkout the latest version of hipCIM from git
     ```
-    git clone git@github.com:ROCm-LS/hipCIM.git
+    git clone git@github.com:AMD-Ecosystem/hipCIM.git
     cd hipCIM
     ```
 
@@ -222,7 +227,7 @@ Quick commands:
 ## Contributing Guide
 
 Contributions to hipCIM are more than welcome!
-Please review the [CONTRIBUTING.md](https://github.com/ROCm-LS/hipCIM/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
+Please review the [CONTRIBUTING.md](https://github.com/AMD-Ecosystem/hipCIM/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
 
 ## Acknowledgments
 

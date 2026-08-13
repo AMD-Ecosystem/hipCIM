@@ -1,6 +1,6 @@
 .. meta::
    :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-   :keywords: ROCm-LS, life sciences, hipCIM installation
+   :keywords: AMD-Ecosystem, life sciences, hipCIM installation
 
 .. _supported-features:
 
@@ -61,6 +61,14 @@ hipCIM supports the following image formats:
 - Single-level Philips TIFF with JPEG compression
 
 Note that the image support is limited by `rocJPEG chroma subsampling and hardware capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
+
+.. note::
+
+   Reading these formats requires the ``cuslide`` plugin, which has a hard
+   runtime dependency on rocJPEG (``librocjpeg.so.1``) and its amdgpu VA-API
+   driver. If they cannot be loaded, SVS and TIFF reading fails entirely
+   (including the CPU fallback). See :ref:`rocjpeg-runtime` for how these ship
+   and how to make them discoverable.
 
 hipCIM API mirrors `scikit-image <https://scikit-image.org/>`_ for image manipulation and `OpenSlide <https://openslide.org/>`_ for image loading.
 
