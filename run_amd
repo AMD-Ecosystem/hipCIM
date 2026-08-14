@@ -1389,81 +1389,6 @@ print_cmd_help_messages() {
     return 0
 }
 
-install_cupy() {
-    # Set default values for environment variables
-    CUPY_URL=${CUPY_URL:-"https://github.com/ROCm/cupy"}
-    CUPY_BRANCH=${CUPY_BRANCH:-"rocmds/develop/13.4.x"}
-    AMDGPU_TARGETS=${AMDGPU_TARGETS:-"gfx90a"}
-
-    if [ -d "cupy" ]; then
-        echo "CuPy repository already exists. Updating instead of cloning..."
-        cd cupy
-        git fetch
-        git checkout $CUPY_BRANCH
-        git pull
-    else
-        echo "Cloning CuPy repository from $CUPY_URL..."
-        git clone $CUPY_URL || {
-            echo "ERROR: Failed to clone CuPy repository"
-            return 1
-        }
-        cd cupy
-        echo "Checking out branch $CUPY_BRANCH..."
-        git checkout $CUPY_BRANCH
-    fi
-
-    echo "Installing ROCm dependencies..."
-    apt install -y hipblas hipsparse rocsparse rocrand hiprand rocthrust rocsolver rocfft hipfft hipcub rocprim rccl roctracer-dev
-
-    echo "Updating git submodules..."
-    git submodule update --init
-
-    echo "Upgrading pip..."
-    pip install --upgrade pip
-
-    echo "Setting up environment for CuPy build..."
-    export CUPY_INSTALL_USE_HIP=1
-    export ROCM_HOME=${ROCM_PATH:-/opt/rocm}
-    export HCC_AMDGPU_TARGET=${AMDGPU_TARGETS//;/,}
-
-    echo "Building CuPy wheel..."
-    echo "Building CuPy wheel..."
-    python3 setup.py --cupy-package-name amd-cupy bdist_wheel || {
-        echo "ERROR: Failed to build CuPy wheel"
-        cd ..
-        return 1
-    }
-
-    echo "Installing CuPy wheel..."
-    CUPY_WHEEL=$(find ~+ -type f -name "*cupy*.whl")
-    if [ -z "$CUPY_WHEEL" ]; then
-        echo "ERROR: Could not find CuPy wheel after build"
-        cd ..
-        return 1
-    fi
-    pip install ${CUPY_WHEEL} || {
-        echo "ERROR: Failed to install CuPy wheel"
-        cd ..
-        return 1
-    }
-
-    echo "CuPy installation completed successfully."
-    cd ..
-    return 0
-}
-
-install_dependencies() {
-    c_echo B "Installing dependencies..."
-
-    install_cupy
-    if [ $? -ne 0 ]; then
-            echo "CuPy installation failed."
-            exit 1
-    fi
-
-    c_echo G "Dependencies installed successfully!"
-    return 0
-}
 
 main() {
     local ret=0
@@ -1484,11 +1409,7 @@ main() {
     fi
 
     case "$CMD" in
-        install_deps)
-            install_dependencies "${ARGS[@]}"
-            exit 0
-            ;;
-        help)
+help)
             print_cmd_help_messages "${ARGS[@]}"
             exit 0
             ;;
