@@ -1,3 +1,44 @@
+# hipCIM 26.06.00 (19 Aug 2026)
+
+Based on upstream cucim 26.06.00. This release adds new medical imaging readers, multi-format TIFF support, and significant rocJPEG performance improvements.
+
+### 🚀 New Features
+* **OME-TIFF and multi-page TIFF support** — Multi-IFD TIFFs now opened as a flat page list, lifting corpus coverage from 0.8% to 90.3%
+* **NIfTI-1 reader** — Open `.nii` / `.nii.gz` volumetric files directly without nibabel or DCMTK
+* **DICOM Phase 1 reader** — Open single-frame `.dcm` files (uncompressed + JPEG/JP2K) without DCMTK/GDCM
+* **rocJPEG handle pool** — Reuse decode handles across `read_region()` calls (~7× single-read speedup)
+* **Process-level GPU tile cache** — LRU cache for cross-call tile reuse on repeated/overlapping reads
+* **Portable manylinux wheels** — Target `manylinux_2_28` (glibc ≥ 2.28), supporting Ubuntu 20.04+, RHEL 8+, etc.
+* **Graceful plugin degradation** — Missing plugins log a warning instead of raising a fatal exception
+
+### 🐛 Bug Fixes
+* rocJPEG batch SIGSEGV on scattered/out-of-range GPU `read_region`
+* rocJPEG batch device allocation VRAM OOM-abort
+* JP2K tiles incorrectly routed to GPU decode path
+* rocJPEG errors now throw instead of calling `exit(1)`
+* RGB channel swap on host-input GPU decode path
+* Big-endian NIfTI voxel byte-swap
+* int64/uint64 min/max separable filter precision loss
+* Integer interpolation narrowing on HIP
+* `loop_batch_axis` integer output corruption on HIP
+* `CuImage.profiler()` GIL segfault with keyword arguments
+* Loader staging respects `output_device` index
+* hipcc build errors with Clang 23 / GCC 8 headers
+* NumPy 2.5 deprecated `.shape=` assignments
+
+### 🛠️ Improvements
+* Dynamic ROCm path and RPATH resolution (pip/venv, tarball, system)
+* hipCIM code-coverage tooling (host-only LLVM coverage on HIP)
+* Documentation updates for ROCm 10.0.0 and rocJPEG runtime dependency
+
+### ⚠️ Known Limitations
+* OME-TIFF Z/T axis metadata not yet populated from OME-XML; files surface as flat level list
+* NIfTI-1 complex and RGB/RGBA voxel types unsupported
+* DICOM multi-frame, DICOM-WSI, DICOM-SEG, and DICOM SR not supported in Phase 1
+* JPEG 2000 tiles always decode on CPU (no ROCm-native JP2K decoder)
+
+---
+
 # cucim 26.06.00 (3 Jun 2026)
 
 ### 🚨 Breaking Changes
