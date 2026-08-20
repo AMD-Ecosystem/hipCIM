@@ -1,4 +1,4 @@
 # SPDX-FileCopyrightText: Copyright (C) 2024-2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-rocm-docs-core==1.26.0
+rocm-docs-core[api_reference]==1.26.0
 autodoc
