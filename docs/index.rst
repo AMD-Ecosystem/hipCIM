@@ -1,36 +1,17 @@
 .. meta::
-  :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
+  :description: hipCIM GPU-accelerated biomedical image I/O and processing on AMD Instinct GPUs
   :keywords: AMD-Ecosystem, life sciences, hipCIM documentation
 
 .. _index:
 
-**********************
+*************************
 hipCIM documentation
-**********************
+*************************
 
-The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities, particularly for multidimensional images used in biomedical, geospatial, material and life sciences, as well as remote sensing use cases. The hipCIM library provides powerful support for GPU-accelerated I/O operations, coupled with an array of computer vision and image processing primitives designed for N-dimensional image data in fields such as biomedical imaging. It facilitates efficient loading and processing of images from modalities such as digital pathology, CT, MRI, and PET.
+hipCIM accelerates GPU biomedical image I/O and N-dimensional image processing on AMD
+Instinct GPUs. See :doc:`What is hipCIM <what-is-hipcim>` for more information.
 
-One of the key strengths of hipCIM is its comprehensive suite of tools designed to facilitate the development of sophisticated image processing applications. Derived from the `NVIDIA RAPIDS™ open-source project cuCIM <https://docs.rapids.ai/api/cucim/stable/>`_, hipCIM 25.10.00 is based on `cuCIM 25.10.00 <https://github.com/rapidsai/cucim/releases/tag/v25.10.00>`_. hipCIM maintains full API compatibility with the cuCIM library, which is pivotal for developers looking to seamlessly transition workloads to AMD devices. This feature eliminates the need for :doc:`hipification <hipify:index>`, allowing for a smoother migration process without altering the existing codebase.
-
-hipCIM key features include:
-
-- **Efficient image I/O:** Expedites loading and saving of images, especially large ones like those in digital pathology.
-
-- **N-dimensional image processing:** Enables processing of multidimensional images, which is common in biomedical imaging and other fields.
-
-- **GPU acceleration:** Leverages the power of GPUs to expedite computationally intensive tasks like image processing.
-
-- **Extensible toolkit:** Offers both C++ and Python APIs, as well as a flexible mechanism for extensions using plugins.
-
-- **Interoperability:** Can be used with other libraries in the AMD Ecosystem and easily interoperate with libraries like `CuPy <https://cupy.dev/>`_.
-
-- **Accelerated workflows:** Helps accelerate workflows in digital pathology and other fields that utilize large, high-resolution images.
-
-In essence, hipCIM provides a versatile platform that bridges diverse hardware ecosystems, enabling greater flexibility and efficiency in deploying advanced image processing workloads.
-
-The code is open and hosted at `<https://github.com/AMD-Ecosystem/hipCIM>`_.
-
-The documentation is structured as follows:
+The hipCIM project is located in `AMD-Ecosystem/hipCIM <https://github.com/AMD-Ecosystem/hipCIM>`_.
 
 .. grid:: 2
   :gutter: 3
@@ -39,16 +20,26 @@ The documentation is structured as follows:
 
     * :ref:`installing-hipcim`
 
+.. grid:: 2
+  :gutter: 3
+
   .. grid-item-card:: Reference
 
+    * :doc:`What's new <reference/whats-new>`
     * :ref:`supported-features`
 
   .. grid-item-card:: Related content
 
     * `hipCIM blog <https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_
 
+Resources
+=========
+
+- PyPI: ``pip install amd-hipcim``
+
+- Upstream: `rapidsai/cucim <https://github.com/rapidsai/cucim>`_
+
 To contribute to hipCIM, refer to
 `Contributing to hipCIM <https://github.com/AMD-Ecosystem/hipCIM/blob/main/CONTRIBUTING.md>`_.
 
-You can find licensing information on the
-:doc:`Licensing <license>` page.
+Licensing information is on the :doc:`Licensing <license>` page.

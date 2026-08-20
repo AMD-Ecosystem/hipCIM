@@ -1,6 +1,6 @@
 .. meta::
-   :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-   :keywords: AMD-Ecosystem, life sciences, hipCIM installation
+   :description: Supported image formats, GPU operations, and performance for hipCIM
+   :keywords: hipCIM, supported functionality, formats, GPU, ROCm, AMD
 
 .. _supported-features:
 
@@ -8,93 +8,250 @@
 Supported features and limitations
 ***********************************
 
-This topic summarizes the hipCIM features and limitations.
+Supported image formats, GPU-accelerated operations, and known limitations for
+hipCIM are listed below.
 
-Features
----------
+Supported image formats
+=======================
 
-- **Core image interface (cucim.core):**
+hipCIM opens the following image formats through the ``hipcim.kit.hipslide`` and
+``hipcim.kit.hipmed`` runtime plugins.
 
-  - All primary image manipulation functions (read, write, and resample) are GPU-accelerated with CPU fallbacks.
+.. list-table::
+   :header-rows: 1
+   :widths: 22 12 34 12
 
-  - Metadata operations (accessing dtype, dims, and shape) run on CPU only.
-
-- **Image processing (cucim.skimage):**
-
-  - Nearly all transform operations (resize, rotate, and warp) are GPU-accelerated with CPU fallbacks.
-
-  - Complete filter suite (Gaussian, median, and edge detectors) benefits from GPU acceleration.
-
-  - Most morphological operations (erosion, dilation, and opening) are GPU-accelerated.
-
-- **Segmentation:**
-
-  - Several advanced segmentation algorithms (felzenszwalb, quickshift, and active_contour) lack GPU acceleration.
-
-  - Core segmentation operations such as watershed and SLIC are GPU-accelerated.
-
-- **Color operations:**
-
-  - All color space conversions (rgb2gray, rgb2hsv, and rgb2lab) are GPU-accelerated.
-
-  - Specialized operations for medical imaging, such as stain separation or combination, also benefit from GPU acceleration.
-
-- **Whole slide imaging:**
-
-  - Patch extraction operations are GPU-accelerated.
-
-  - Metadata operations run exclusively on the CPU.
-
-- **Measurement functions:**
-
-  - Core measurement functions like region labeling are GPU-accelerated.
-
-  - Some advanced functions like ``marching_cubes`` lack GPU acceleration.
-
-Image support
---------------
-
-hipCIM supports the following image formats:
-
-- Single-level Aperio ScanScope Virtual Slide (SVS) with JPEG compression
-
-- Single-level Philips TIFF with JPEG compression
-
-Note that the image support is limited by `rocJPEG chroma subsampling and hardware capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
+   * - Format
+     - Extension
+     - Notes
+     - GPU tile decode
+   * - Aperio ScanScope Virtual Slide (SVS), single-level JPEG
+     - ``.svs``
+     - | JPEG-compressed tiles.
+       | rocJPEG backend.
+     - Yes
+   * - Philips TIFF, single-level JPEG
+     - ``.tiff``
+     - | JPEG-compressed tiles.
+       | rocJPEG backend.
+     - Yes
+   * - OME-TIFF (multi-page, Z/T/channel)
+     - ``.tif``, ``.tiff``, ``.ome.tiff``
+     - | Flat page list.
+       | JPEG tiles GPU-decoded.
+       | Non-JPEG tiles CPU-decoded.
+     - Partial (JPEG tiles)
+   * - Generic multi-page TIFF
+     - ``.tif``, ``.tiff``
+     - | Flat page list.
+       | JPEG tiles GPU-decoded.
+     - Partial (JPEG tiles)
+   * - Vectra-QPTIFF
+     - ``.qptiff``
+     - | Most files supported.
+       | 2 of 6 test files fail due to a proprietary variant.
+     - Partial
+   * - NIfTI-1 (uncompressed)
+     - ``.nii``
+     - | CPU read.
+       | All supported NIfTI-1 data types.
+     - n/a
+   * - NIfTI-1 (gzip compressed)
+     - ``.nii.gz``
+     - | CPU read.
+       | libdeflate decompression.
+     - n/a
+   * - DICOM (uncompressed, single-frame)
+     - ``.dcm``
+     - | Explicit/Implicit VR Little-Endian.
+       | CPU read.
+     - n/a
+   * - DICOM (JPEG compressed, single-frame)
+     - ``.dcm``
+     - Enabled by default (``CUMED_DICOM_COMPRESSED=ON``)
+     - n/a
 
 .. note::
 
-   Reading these formats requires the ``cuslide`` plugin, which has a hard
-   runtime dependency on rocJPEG (``librocjpeg.so.1``) and its amdgpu VA-API
-   driver. If they cannot be loaded, SVS and TIFF reading fails entirely
-   (including the CPU fallback). See :ref:`rocjpeg-runtime` for how these ship
-   and how to make them discoverable.
+   SVS/TIFF decode is handled by the ``hipcim.kit.hipslide`` plugin, which loads
+   ``librocjpeg.so.1`` and its amdgpu VA-API driver at startup. If those
+   libraries are unavailable the plugin fails to load and SVS/TIFF files can't
+   be read at all. hipCIM raises ``Cannot find a plugin to handle '.svs'``. See
+   :ref:`rocjpeg-runtime` for how the ROCm 10.0 pip packages provide them.
 
-hipCIM API mirrors `scikit-image <https://scikit-image.org/>`_ for image manipulation and `OpenSlide <https://openslide.org/>`_ for image loading.
+Image format support is also limited by `rocJPEG chroma subsampling and hardware
+capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
 
-Limitations
-------------
+Not yet supported
+=================
 
-- No Support for JPEG2K compression.
+- NDPI, VMS, MIRAX, SCN, BIF, VSI, CZI, ZVI from vendors such as Zeiss,
+  Hamamatsu, and Leica
+- DICOM-WSI pyramid, DICOM-SEG, DICOM SR, multi-frame DICOM
+- JPEG 2000 GPU decode. OpenJPEG is CPU-only. No ROCm-native JP2K GPU decoder ships
+  in this release.
+- Dask and GDS integration
+- OME-TIFF Z/T axis metadata. Dims stay ``YXC``. OME-XML Z/T parse is planned.
 
-- No GDS support
+Image operations
+================
 
-- No Dask support
+The tables below list GPU acceleration support for ``cucim.core`` and
+``cucim.skimage``.
 
-- No support for the following image processing operations:
+cucim.core: Image interface
+---------------------------
 
-  - affine, similarity, euclidean, threshold_niblack, threshold_sauvola, convex_hull_image, corner_fast denoise_bilateral, denoise_wavelet, wiener, richardson_lucy, unsupervised_wiener, estimate_sigma, random_walker, felzenszwalb,slic, quickshift, watershed, active_contour, and all exposure operations.
+``cucim.core`` covers image read, write, resample, and metadata retrieval.
 
-- Registration:
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
 
-  - All registration functions (optical flow and daemons) are GPU-accelerated but typically lack CPU fallbacks.
+   * - Operation
+     - GPU accelerated
+     - CPU fallback
+   * - Image read (``read_region``)
+     - Yes (JPEG tiles)
+     - Yes
+   * - Image write
+     - Yes
+     - Yes
+   * - Resample
+     - Yes
+     - Yes
+   * - Metadata retrieval
+     - n/a
+     - Yes
 
-- Clara DL pipeline:
+cucim.skimage: Image processing
+-------------------------------
 
-  - Data loading has partial GPU acceleration.
+``cucim.skimage`` groups transform, filter, morphology, restoration, color,
+measurement, and exposure operations.
 
-  - Most Clara transformations are GPU-accelerated with CPU fallbacks.
+.. list-table::
+   :header-rows: 1
+   :widths: 22 48 30
 
-- Backend differences:
+   * - Category
+     - Supported operations
+     - GPU accelerated
+   * - Transform
+     - resize, rotate, warp (batch / multi-channel optimized)
+     - Yes
+   * - Filters
+     - Gaussian, median, Sobel, Prewitt, Scharr, Laplace, unsharp mask, rank
+       filters
+     - Yes
+   * - Morphology
+     - erosion, dilation, opening, closing, skeletonize, binary_erosion,
+       binary_dilation, h_maxima, h_minima, local_maxima, local_minima
+     - Yes
+   * - Restoration
+     - rolling_ball (background subtraction)
+     - Yes
+   * - Segmentation
+     - Not currently available (watershed, SLIC)
+     - No
+   * - Color
+     - rgb2gray, rgb2hsv, rgb2lab, and all colour space conversions, plus stain
+       separation for H&E and DAB
+     - Yes
+   * - Measurement
+     - label (region labeling)
+     - Yes
+   * - Exposure
+     - ``equalize_hist``, ``adjust_gamma``, histogram operations
+     - Yes
 
-  - As hipCIM is an AMD ROCm port of cuCIM, it might differ from cuCIM in performance or numerical behavior. Validate results for mission-critical steps and `report reproducible issues <https://github.com/ROCm-LS/ROCm-LS-Docs/issues/new>`_.
+Not GPU-accelerated
+-------------------
+
+- Affine, similarity, and Euclidean transforms
+- Denoising such as TV, bilateral, wavelet, and non-local means
+- Image registration functions. Most lack CPU fallbacks.
+- felzenszwalb, quickshift, active contour segmentation
+- watershed, SLIC
+- marching cubes
+
+Performance
+===========
+
+The tables below report representative measurements from internal benchmarks on
+AMD Instinct MI350X with ROCm 10.0.0. They aren't produced by in-repository CI.
+For additional GPU vs. CPU comparisons, see the `hipCIM introductory blog post
+<https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_.
+
+Whole-slide read throughput on AMD Instinct MI350X, ROCm 10.0.0, measured with
+the batched ``read_region`` API (256 px patches, level 0, ``batch_size=128``,
+``num_workers=8``, decode realized to a host array). Values are patches per
+second. Speedup is GPU vs. the OpenSlide baseline.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 22 22 22 16
+
+   * - Slide
+     - GPU (``device="cuda"``)
+     - CPU (``device="cpu"``)
+     - OpenSlide baseline
+     - GPU speedup
+   * - CMU-1.svs
+     - 39,864
+     - 29,350
+     - 1,217
+     - 32.8×
+   * - CMU-2.svs
+     - 42,937
+     - 27,549
+     - 1,234
+     - 34.8×
+   * - CMU-3.svs
+     - 42,152
+     - 29,369
+     - 1,232
+     - 34.2×
+   * - Generic-TIFF (CMU-1)
+     - 42,866
+     - 34,227
+     - 1,173
+     - 36.6×
+
+Single-tile and small-batch ``read_region`` latency (256 px, MI350X, ROCm
+10.0.0), showing the rocJPEG handle-pool impact:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Metric
+     - Before pool
+     - With pool
+   * - Single 256 px ``read_region`` with ``device="cuda"``
+     - 3.76 ms
+     - 0.515 ms
+   * - 64-tile batch ``read_region`` with ``device="cuda"``, total time
+     - 8.36 ms
+     - 4.50 ms
+   * - CPU reference (single 256 px)
+     - 0.18 ms
+     - 0.18 ms
+
+Representative ``cucim.skimage`` operator latencies at 2048×2048 on MI350X with
+ROCm 10.0.0, in milliseconds: rgb2gray 0.019, rgb2hsv 0.034, rgb2lab 0.166,
+gaussian 0.100, median 0.618, sobel 0.129, unsharp_mask 0.227, threshold_otsu
+0.473, binary_erosion 0.152, binary_dilation 0.153, resize at half scale 0.120,
+rescale at 2× 0.116, rotate 30° 0.320, warp_affine 0.994, label 1.044,
+distance_transform_edt 1.056.
+
+For MI300X GPU vs. CPU comparison at large block sizes, see the blog post linked
+above.
+
+Backend differences
+-------------------
+
+hipCIM is an AMD ROCm port of cuCIM. It might differ from cuCIM in performance
+or numerical behavior. Validate results for mission-critical steps and
+`report reproducible issues
+<https://github.com/AMD-Ecosystem/hipCIM/issues/new>`_.
