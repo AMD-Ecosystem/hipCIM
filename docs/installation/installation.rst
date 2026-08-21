@@ -106,19 +106,19 @@ Build hipCIM from source if you intend to develop for the library.
 
 4. Build and install hipCIM.
 
-   1. Build the base C++ libraries.
+   a. Build the base C++ libraries.
 
       .. code:: shell
 
          ./run_amd build_local cpp release
 
-   2. Build the Python bindings.
+   b. Build the Python bindings.
 
       .. code:: shell
 
          ./run_amd build_local hipcim release
 
-   3. Install the Python bindings.
+   c. Install the Python bindings.
 
       .. code:: shell
 
@@ -128,7 +128,7 @@ Build hipCIM from source if you intend to develop for the library.
 
 5. Verify the installation.
 
-   1. Generate test fixtures. You can run this step more than once. Existing
+   a. Generate test fixtures. You can run this step more than once. Existing
       files are left unchanged. ``run_amd`` also runs it automatically when you
       execute the C++ tests.
 
@@ -136,14 +136,14 @@ Build hipCIM from source if you intend to develop for the library.
 
          ./test_data/gen_images.sh
 
-   2. Execute the tests in the base C++ libraries. The ``release`` argument is
+   b. Execute the tests in the base C++ libraries. The ``release`` argument is
       accepted but unused by ``test_cpp``.
 
       .. code:: shell
 
          ./run_amd test cpp release
 
-   3. Execute the Python tests.
+   c. Execute the Python tests.
 
       .. code:: shell
 
