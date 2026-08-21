@@ -166,13 +166,15 @@ commands below.
    with Python 3.12, such as Ubuntu 20.04 and later, Debian 10 and later,
    RHEL/AlmaLinux/Rocky 8 and later, and SUSE.
 
-1. If ROCm has already been installed, install ``amd-hipcim``.
+1. Install hipCIM.
+   
+   If ROCm is already installed, install ``amd-hipcim``.
 
    .. code:: shell
 
       pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
 
-2. If ROCm hasn't been installed, install ``amd-hipcim[rocm]``.
+   If ROCm isn't already installed, install ``amd-hipcim[rocm]``.
 
    .. code:: shell
 
@@ -180,7 +182,7 @@ commands below.
         --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
         --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
 
-3. Verify the installation.
+2. Verify the installation.
 
    .. code:: shell
 
