@@ -6,8 +6,7 @@ defaults:
   numbered: False
 root: index
 subtrees:
-- caption: About
-  entries:
+- entries:
   - file: what-is-hipcim
     title: What is hipCIM
 - caption: Install
