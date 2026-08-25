@@ -5,7 +5,7 @@
 .. _what-is-hipcim:
 
 ****************
-What is hipCIM
+What is hipCIM?
 ****************
 
 hipCIM is the AMD/ROCm port of `rapidsai/cucim <https://github.com/rapidsai/cucim>`_ for
