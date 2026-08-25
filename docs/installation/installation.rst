@@ -14,9 +14,9 @@ System requirements
 ===================
 
 +--------------+----------------+----------------+----------------------------------+
-| ROCm version | Ubuntu version | Python version | AMD Instinct GPU (tested)        |
+| ROCm version | Ubuntu version | Python version | AMD Instinct™ GPU (tested)       |
 +==============+================+================+==================================+
-| 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, MI350X, MI355X   |
+| 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, MI355X           |
 +--------------+----------------+----------------+----------------------------------+
 
 .. note::
@@ -30,7 +30,7 @@ System requirements
 Setting up the environment
 --------------------------
 
-Set up the environment for installing hipCIM as follows:
+Set up the environment before installing hipCIM.
 
 1. Optionally start an Ubuntu 24.04 Docker container.
 
@@ -229,45 +229,35 @@ commands below.
 
 .. _rocjpeg-runtime:
 
-Runtime dependency: rocJPEG and the amdgpu VA-API driver
+rocJPEG and the amdgpu VA-API driver
 ========================================================
 
-Whole-slide formats such as Aperio SVS and Philips TIFF are handled by the
-``hipcim.kit.hipslide@<version>.so`` plugin. Its GPU JPEG decode path depends on
-``librocjpeg.so.1`` and a compatible amdgpu VA-API driver.
-
-When you ``import cucim`` or ``from cucim import CuImage``, ``cucim.clara._rocm_init``
-preloads ``librocjpeg.so.1`` and related ROCm libraries from the pip-installed
-``_rocm_sdk_*`` trees when the ``rocm_sdk`` package is present. That covers most
-pip/venv installs without manual ``LD_LIBRARY_PATH`` changes.
+rocJPEG isn't shipped inside the ``amd-hipcim`` wheel. It's supplied with a ROCm installation. The hipCIM installation won't fail if rocJPEG is missing, but slide formats won't open without rocJPEG's ``librocjpeg.so.1`` and its matching amdgpu VA-API driver.
 
 At load time, if ``librocjpeg.so.1`` or its VA-API driver can't be loaded, the
 hipslide plugin fails to register. hipCIM logs a warning and continues with the
-remaining plugins. NIfTI and DICOM reads can still succeed. Opening SVS or other
-slide formats without the hipslide plugin raises ``Cannot find a plugin to handle
-'<extension>'``.
+remaining plugins. NIfTI and DICOM reads can still succeed.
 
-After the plugin loads, individual JPEG tile decode failures log warnings and
-fall back where possible rather than aborting the process.
+.. note::
 
-If rocJPEG still fails to load after import, put the ROCm SDK library directory
-on the loader path and point libva at the bundled amdgpu driver:
+   If rocJPEG still fails to load after import, add the ROCm SDK library
+   directory to the loader path and point libva at the bundled amdgpu driver.
+   This step is only necessary if rocJPEG fails to load after import.
 
-.. code:: shell
+   .. code:: shell
 
-   # pip/venv ROCm: the _rocm_sdk_devel/lib directory that holds librocjpeg.so.1
-   # and the amdgpu VA-API driver. For a classic install use ${ROCM_PATH}/lib.
-   export ROCM_LIB=$(python -c "import sysconfig, os; print(os.path.join(sysconfig.get_paths()['purelib'], '_rocm_sdk_devel', 'lib'))")
+      # pip/venv ROCm: the _rocm_sdk_devel/lib directory that holds librocjpeg.so.1
+      # and the amdgpu VA-API driver. For a classic install use ${ROCM_PATH}/lib.
+      export ROCM_LIB=$(python -c "import sysconfig, os; print(os.path.join(sysconfig.get_paths()['purelib'], '_rocm_sdk_devel', 'lib'))")
 
-   export LD_LIBRARY_PATH="${ROCM_LIB}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-   export LIBVA_DRIVERS_PATH="${ROCM_LIB}"
-   export LIBVA_DRIVER_NAME=amdgpu
+      export LD_LIBRARY_PATH="${ROCM_LIB}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+      export LIBVA_DRIVERS_PATH="${ROCM_LIB}"
+      export LIBVA_DRIVER_NAME=amdgpu
 
 Getting started
 ===============
 
-The sample below assumes a hipCIM source checkout. From the repository root,
-generate the test TIFF once:
+Use this sample to get started with hipCIM.
 
 .. code:: shell
 

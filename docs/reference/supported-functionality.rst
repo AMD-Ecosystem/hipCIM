@@ -5,11 +5,10 @@
 .. _supported-features:
 
 ***********************************
-Supported features and limitations
+Supported features 
 ***********************************
 
-Supported image formats, GPU-accelerated operations, and known limitations for
-hipCIM are listed below.
+Listed here are the supported image formats, GPU-accelerated operations, and known limitations for hipCIM.
 
 Supported image formats
 =======================
@@ -55,21 +54,21 @@ hipCIM opens the following image formats through the ``hipcim.kit.hipslide`` and
      - ``.nii``
      - | CPU read.
        | All supported NIfTI-1 data types.
-     - n/a
+     - N/A
    * - NIfTI-1 (gzip compressed)
      - ``.nii.gz``
      - | CPU read.
        | libdeflate decompression.
-     - n/a
+     - N/A
    * - DICOM (uncompressed, single-frame)
      - ``.dcm``
      - | Explicit/Implicit VR Little-Endian.
        | CPU read.
-     - n/a
+     - N/A
    * - DICOM (JPEG compressed, single-frame)
      - ``.dcm``
      - Enabled by default (``CUMED_DICOM_COMPRESSED=ON``)
-     - n/a
+     - N/A
 
 .. note::
 
@@ -82,8 +81,8 @@ hipCIM opens the following image formats through the ``hipcim.kit.hipslide`` and
 Image format support is also limited by `rocJPEG chroma subsampling and hardware
 capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
 
-Not yet supported
-=================
+Unsupported image formats
+==========================
 
 - NDPI, VMS, MIRAX, SCN, BIF, VSI, CZI, ZVI from vendors such as Zeiss,
   Hamamatsu, and Leica
@@ -96,8 +95,7 @@ Not yet supported
 Image operations
 ================
 
-The tables below list GPU acceleration support for ``cucim.core`` and
-``cucim.skimage``.
+Listed here are the GPU-accelerated operations supported by ``cucim.core`` and ``cucim.skimage``.
 
 cucim.core: Image interface
 ---------------------------
@@ -121,7 +119,7 @@ cucim.core: Image interface
      - Yes
      - Yes
    * - Metadata retrieval
-     - n/a
+     - N/A
      - Yes
 
 cucim.skimage: Image processing
@@ -162,14 +160,16 @@ measurement, and exposure operations.
      - label (region labeling)
      - Yes
    * - Exposure
-     - ``equalize_hist``, ``adjust_gamma``, histogram operations
-     - Yes
+     - histogram operations
+     - Limited
 
 Not GPU-accelerated
 -------------------
 
 - Affine, similarity, and Euclidean transforms
 - Denoising such as TV, bilateral, wavelet, and non-local means
+- Exposure operations such as ``equalize_hist``, ``adjust_gamma``, and related
+  histogram operations
 - Image registration functions. Most lack CPU fallbacks.
 - felzenszwalb, quickshift, active contour segmentation
 - watershed, SLIC
@@ -178,10 +178,8 @@ Not GPU-accelerated
 Performance
 ===========
 
-The tables below report representative measurements from internal benchmarks on
-AMD Instinct MI350X with ROCm 10.0.0. They aren't produced by in-repository CI.
-For additional GPU vs. CPU comparisons, see the `hipCIM introductory blog post
-<https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_.
+The tables below report representative measurements from internal benchmarks.
+They aren't produced by in-repository CI.
 
 Whole-slide read throughput on AMD Instinct MI350X, ROCm 10.0.0, measured with
 the batched ``read_region`` API (256 px patches, level 0, ``batch_size=128``,
@@ -245,8 +243,9 @@ gaussian 0.100, median 0.618, sobel 0.129, unsharp_mask 0.227, threshold_otsu
 rescale at 2× 0.116, rotate 30° 0.320, warp_affine 0.994, label 1.044,
 distance_transform_edt 1.056.
 
-For MI300X GPU vs. CPU comparison at large block sizes, see the blog post linked
-above.
+For MI300X GPU vs. CPU comparison at large block sizes, see the `hipCIM
+introductory blog post
+<https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_.
 
 Backend differences
 -------------------

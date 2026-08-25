@@ -162,9 +162,9 @@ gain.
    * - CPU reference (single 256 px)
      - 0.18 ms
      - 0.18 ms
-     - n/a
+     - N/A
 
-Benchmarked on AMD Instinct MI350X with ROCm 10.0.0. The test used CMU-1.svs,
+Benchmarked on AMD Instinct MI300X with ROCm 10.0.0. The test used CMU-1.svs,
 level 0, 256 px tiles, distinct tiles per iteration, mean of 3 runs. These are
 representative internal benchmarks, not in-repository CI results.
 
