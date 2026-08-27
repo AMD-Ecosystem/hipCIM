@@ -10,8 +10,7 @@ Installing hipCIM
 
 hipCIM can be installed using :ref:`AMD PyPI <install-package>` or it can be :ref:`built from source <source-build>`.
 
-System requirements
-===================
+System requirements:
 
 +--------------+----------------+----------------+----------------------------------+
 | ROCm version | Ubuntu version | Python version | AMD Instinct™ GPU (tested)       |
@@ -19,13 +18,9 @@ System requirements
 | 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, MI355X           |
 +--------------+----------------+----------------+----------------------------------+
 
-.. note::
-
-   Ubuntu 24.04 is the tested reference configuration and the
-   required OS family for a :ref:`source build <source-build>`. Prebuilt
-   ``amd-hipcim`` wheels require Python 3.12. A source build supports Python
-   3.10 and later per ``python/cucim/pyproject.toml``. The wheels target the
-   ``manylinux_2_28`` standard and run on any glibc >= 2.28 Linux distribution.
+.. note:: 
+   
+   Ubuntu 24.04 is the tested reference configuration and the required OS family for a :ref:`source build <source-build>`. The wheels target the ``manylinux_2_28`` standard and run on any glibc >= 2.28 Linux distribution.
 
 Setting up the environment
 --------------------------
@@ -65,7 +60,7 @@ Set up the environment before installing hipCIM.
       python3 -m venv hipcim_dev
       source hipcim_dev/bin/activate
       pip install --upgrade pip
-      pip install "rocm[libraries,devel]" --index-url https://repo.amd.com/rocm/whl-multi-arch/
+      pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 
 4. Set the environment variables. Set ``AMDGPU_TARGETS`` to the GFX target for
    your GPU. Use only one value.
@@ -180,7 +175,7 @@ commands below.
 
       pip install "amd-hipcim[rocm]" \
         --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
 
 2. Verify the installation.
 
