@@ -9,7 +9,7 @@ What is hipCIM?
 ****************
 
 hipCIM is the AMD ROCm port of `rapidsai/cucim <https://github.com/rapidsai/cucim>`_ for
-GPU-accelerated biomedical image I/O and N-dimensional image processing on AMD Instinct GPUs.
+GPU-accelerated biomedical image I/O and N-dimensional image processing on AMD Instinct™ GPUs.
 The library provides a drop-in replacement API for `cuCIM
 <https://docs.rapids.ai/api/cucim/stable/>`_ that lets existing Python code run
 unchanged on AMD hardware.
