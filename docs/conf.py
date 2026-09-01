@@ -49,11 +49,7 @@ flavor options: rocm, rocm-docs-home, rocm-blogs, rocm-ds, instinct, ai-develope
 html_theme = "rocm_docs_theme"
 # repository_url is set explicitly because the theme can only derive it from an
 # https or git@host:org/repo remote, which SSH host aliases don't match.
-html_theme_options = {
-    "flavor": "rocm-ls",
-    "repository_url": "https://github.com/AMD-Ecosystem/hipCIM",
-}
-
+html_theme_options = {"flavor": "rocm-ls"}
 
 # This section turns on/off article info
 setting_all_article_info = True
