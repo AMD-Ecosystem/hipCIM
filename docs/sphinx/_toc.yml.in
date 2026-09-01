@@ -12,7 +12,7 @@ subtrees:
 - caption: Install
   entries:
   - file: installation/installation
-    title: Installation
+    title: Installing hipCIM
 - caption: Reference
   entries:
   - file: reference/release-notes
