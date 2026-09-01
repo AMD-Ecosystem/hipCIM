@@ -1,6 +1,0 @@
-nbsphinx
-recommonmark
-sphinx
-pydata-sphinx-theme
-numpydoc
-ipython
