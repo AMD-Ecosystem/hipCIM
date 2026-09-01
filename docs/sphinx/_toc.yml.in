@@ -18,7 +18,7 @@ subtrees:
   - file: reference/release-notes
     title: Release notes
   - file: reference/supported-functionality
-    title: Supported features
+    title: Supported image formats
 - caption: Related content
   entries:
   - url: https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html
