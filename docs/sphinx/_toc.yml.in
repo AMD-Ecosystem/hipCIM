@@ -15,8 +15,8 @@ subtrees:
     title: Installation
 - caption: Reference
   entries:
-  - file: reference/whats-new
-    title: What's new
+  - file: reference/release-notes
+    title: Release notes
   - file: reference/supported-functionality
     title: Supported features
 - caption: Related content

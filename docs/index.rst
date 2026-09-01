@@ -1,6 +1,6 @@
 .. meta::
-  :description: hipCIM GPU-accelerated biomedical image I/O and processing on AMD Instinct GPUs
-  :keywords: AMD-Ecosystem, life sciences, hipCIM documentation
+   :description: hipCIM GPU-accelerated biomedical image I/O and processing on AMD Instinct GPUs
+   :keywords: AMD-Ecosystem, life sciences, hipCIM documentation
 
 .. _index:
 
@@ -9,7 +9,7 @@ hipCIM documentation
 *************************
 
 hipCIM accelerates GPU biomedical image I/O and N-dimensional image processing on AMD
-Instinct GPUs. For more information, see :doc:`What is hipCIM? <what-is-hipcim>`
+Instinct™ GPUs. For more information, see :doc:`What is hipCIM? <what-is-hipcim>`.
 
 The hipCIM project is located in `AMD-Ecosystem/hipCIM <https://github.com/AMD-Ecosystem/hipCIM>`_.
 
@@ -22,7 +22,7 @@ The hipCIM project is located in `AMD-Ecosystem/hipCIM <https://github.com/AMD-E
 
   .. grid-item-card:: Reference
 
-    * :doc:`What's new <reference/whats-new>`
+    * :doc:`Release notes <reference/release-notes>`
     * :ref:`supported-features`
 
 To contribute to hipCIM, refer to

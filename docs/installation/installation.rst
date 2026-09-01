@@ -15,15 +15,18 @@ System requirements:
 +--------------+----------------+----------------+----------------------------------+
 | ROCm version | Ubuntu version | Python version | AMD Instinct™ GPU (tested)       |
 +==============+================+================+==================================+
-| 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, MI355X           |
+| 10.0.0       | 24.04          | 3.12           | MI300X, MI325X, and MI355X       |
 +--------------+----------------+----------------+----------------------------------+
 
-.. note:: 
-   
-   Ubuntu 24.04 is the tested reference configuration and the required OS family for a :ref:`source build <source-build>`. The wheels target the ``manylinux_2_28`` standard and run on any glibc >= 2.28 Linux distribution.
+.. note::
+
+   Ubuntu 24.04 is the tested reference configuration and the required OS family
+   for a :ref:`source build <source-build>`. The wheels target the
+   ``manylinux_2_28`` standard and run on Linux distributions with glibc 2.28 or
+   later.
 
 Setting up the environment
---------------------------
+==========================
 
 Set up the environment before installing hipCIM.
 
@@ -37,7 +40,7 @@ Set up the environment before installing hipCIM.
       -v $HOME:$HOME  --name ${LOGNAME}_rocm                \
                                        ubuntu:24.04
 
-2. Install the non-ROCm system dependencies:
+2. Install the non-ROCm system dependencies.
 
    .. code:: shell
 
@@ -131,14 +134,14 @@ Build hipCIM from source if you intend to develop for the library.
 
          ./test_data/gen_images.sh
 
-   b. Execute the tests in the base C++ libraries. The ``release`` argument is
+   b. Run the tests in the base C++ libraries. The ``release`` argument is
       accepted but unused by ``test_cpp``.
 
       .. code:: shell
 
          ./run_amd test cpp release
 
-   c. Execute the Python tests.
+   c. Run the Python tests.
 
       .. code:: shell
 
@@ -151,18 +154,19 @@ Installing hipCIM using AMD PyPI
 
 hipCIM users who don't intend to develop for the library can install hipCIM from
 `AMD PyPI <https://pypi.amd.com/simple/>`_ using the ROCm 10.0 index URL in the
-commands below.
+installation commands.
 
 .. note::
 
    The prebuilt ``amd-hipcim`` wheels are built against the `manylinux_2_28
    <https://github.com/pypa/manylinux>`_ standard and repaired with
-   ``auditwheel``. They are portable across any glibc >= 2.28 Linux distribution
-   with Python 3.12, such as Ubuntu 20.04 and later, Debian 10 and later,
-   RHEL/AlmaLinux/Rocky 8 and later, and SUSE.
+   ``auditwheel``. They're portable across Linux distributions with glibc 2.28
+   or later and Python 3.12. Supported distributions include Ubuntu 20.04 and
+   later, Debian 10 and later, RHEL 8 and later, AlmaLinux 8 and later, Rocky
+   Linux 8 and later, and SUSE.
 
 1. Install hipCIM.
-   
+
    If ROCm is already installed, install ``amd-hipcim``.
 
    .. code:: shell
@@ -237,7 +241,6 @@ remaining plugins. NIfTI and DICOM reads can still succeed.
 
    If rocJPEG still fails to load after import, add the ROCm SDK library
    directory to the loader path and point libva at the bundled amdgpu driver.
-   This step is only necessary if rocJPEG fails to load after import.
 
    .. code:: shell
 
@@ -260,7 +263,7 @@ Use this sample to get started with hipCIM.
 
 The sample opens the generated image with ``CuImage`` and reads a region on the GPU.
 
-Sample code:
+The Python code opens the generated image.
 
 .. code-block:: python
 

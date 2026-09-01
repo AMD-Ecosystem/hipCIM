@@ -4,15 +4,18 @@
 
 .. _whats-new:
 
-********************************
-What's new in hipCIM 26.06.00
-********************************
+**********************************
+Release notes for hipCIM 26.06.00
+**********************************
 
 hipCIM 26.06.00 is based on upstream cuCIM 26.06.00. This release adds medical
 imaging readers, multi-format TIFF support, and rocJPEG performance improvements.
 
 New features
 ============
+
+hipCIM 26.06.00 adds image format support, decoding improvements, and new image
+processing operations.
 
 OME-TIFF and multi-page TIFF support
 -------------------------------------
@@ -25,8 +28,8 @@ plates.
 hipCIM 26.06.00 removes this restriction. Multi-IFD TIFFs open as a flat page
 list, with each Subfile-Type-0 IFD exposed as a level.
 
-Empirical impact measured against the Bio-Formats / OME canonical corpus of
-2,703 files:
+Internal testing measured the impact against the Bio-Formats and OME canonical
+corpus of 2,703 files:
 
 .. list-table::
    :header-rows: 1
@@ -72,31 +75,33 @@ descending, then original index ascending. Each IFD carries a stable
 .. note::
 
    This release exposes multi-IFD files as a flat level list with ``dims="YXC"``.
-   True Z/T axis support from OME-XML metadata and SubIFD pyramid traversal are
-   planned for a future release.
+   True Z and T axis support from OME-XML metadata and SubIFD pyramid traversal
+   are planned for a future release.
 
 NIfTI-1 reader
 ----------------
 
-``CuImage`` opens NIfTI-1 volumetric files (``.nii``, ``.nii.gz``) directly,
-without nibabel, DCMTK, or any external medical imaging library.
+``CuImage`` opens NIfTI-1 volumetric files with ``.nii`` or ``.nii.gz``
+extensions directly without nibabel, DCMTK, or an external medical imaging
+library.
 
-- Hand-rolled 348-byte header parser conforming to the NIfTI-1 specification
-- Automatic endianness detection and byte-swap
-- Gzip decompression via libdeflate
-- Supported data types: int8, uint8, int16, uint16, int32, uint32, int64,
-  uint64, float32, float64
-- Coordinate system reported as ``RAS``. Dimensions are ``ZYXC`` or ``TZYXC``.
-- Voxel spacing taken from the NIfTI-1 ``pixdim`` field
+- A hand-written 348-byte header parser conforms to the NIfTI-1 specification.
+- The reader detects endianness and swaps bytes when required.
+- libdeflate provides gzip decompression.
+- Supported data types are ``int8``, ``uint8``, ``int16``, ``uint16``,
+  ``int32``, ``uint32``, ``int64``, ``uint64``, ``float32``, and ``float64``.
+- The reader reports the ``RAS`` coordinate system and ``ZYXC`` or ``TZYXC``
+  dimensions.
+- The NIfTI-1 ``pixdim`` field provides voxel spacing.
 
 .. code-block:: python
 
    from cucim import CuImage
 
    vol = CuImage("brain.nii.gz")
-   print(vol.shape)      # e.g. [182, 218, 182, 1]
-   print(vol.dims)       # e.g. "ZYXC"
-   print(vol.dtype)      # e.g. float32
+   print(vol.shape)      # For example, [182, 218, 182, 1]
+   print(vol.dims)       # For example, "ZYXC"
+   print(vol.dtype)      # For example, float32
    print(vol.spacing())  # voxel size in mm, in dims order
    print(vol.coord_sys)  # "RAS"
 
@@ -113,33 +118,34 @@ the DLPack and array interfaces:
 DICOM Phase 1 reader
 ----------------------
 
-``CuImage`` opens single-frame DICOM files (``.dcm``) without DCMTK or GDCM. A
-minimal hand-rolled tag parser reads the DICOM tags needed to reconstruct pixel
-data and spatial metadata.
+``CuImage`` opens single-frame DICOM files with the ``.dcm`` extension without
+DCMTK or GDCM. A minimal hand-written tag parser reads the DICOM tags needed to
+reconstruct pixel data and spatial metadata.
 
-Supported in Phase 1:
+Phase 1 supports these DICOM features.
 
-- Transfer syntaxes: Explicit VR Little-Endian, Implicit VR Little-Endian,
-  uncompressed
-- Compressed transfer syntaxes: JPEG Baseline (1.2.840.10008.1.2.4.50) and
-  JPEG 2000 (1.2.840.10008.1.2.4.90). Enabled by default. Prebuilt
-  ``amd-hipcim`` wheels ship with ``CUMED_DICOM_COMPRESSED`` ON.
-- Photometric interpretations: MONOCHROME1, MONOCHROME2, RGB, YBR_FULL,
-  YBR_FULL_422
-- Pixel representations: unsigned and signed integer
-- Coordinate system reported as ``LPS``. Spacing comes from ``PixelSpacing`` and
-  ``SliceThickness`` tags
+- Supported transfer syntaxes are Explicit VR Little-Endian and Implicit VR
+  Little-Endian.
+- Supported compressed transfer syntaxes are JPEG Baseline with UID
+  ``1.2.840.10008.1.2.4.50`` and JPEG 2000 with UID
+  ``1.2.840.10008.1.2.4.90``. Compression support is enabled by default.
+  Prebuilt ``amd-hipcim`` wheels set ``CUMED_DICOM_COMPRESSED`` to ``ON``.
+- Supported photometric interpretations are ``MONOCHROME1``, ``MONOCHROME2``,
+  ``RGB``, ``YBR_FULL``, and ``YBR_FULL_422``.
+- Pixel representations can be unsigned or signed integers.
+- The reader reports the ``LPS`` coordinate system. The ``PixelSpacing`` and
+  ``SliceThickness`` tags provide spacing.
 
-Not yet supported in Phase 1: multi-frame DICOM, DICOM-SEG, DICOM-WSI pyramid,
+Phase 1 doesn't support multi-frame DICOM, DICOM-SEG, DICOM-WSI pyramid, or
 DICOM SR.
 
 rocJPEG handle pool
 -------------------
 
-rocJPEG decode handles are managed by a process-level singleton pool
-(``RocJpegHandlePool``). Previously, every ``read_region()`` call created and
-destroyed a full ``rocJpegCreate()`` / ``rocJpegDestroy()`` cycle. Pooling
-reuses handles across calls. The benefit is largest for single and small reads.
+The process-level ``RocJpegHandlePool`` singleton manages rocJPEG decode
+handles. Previously, every ``read_region()`` call created a handle with
+``rocJpegCreate()`` and destroyed it with ``rocJpegDestroy()``. Pooling reuses
+handles across calls. The benefit is largest for single and small reads.
 Batched reads share one handle across the whole batch and see a more modest
 gain.
 
@@ -151,7 +157,7 @@ gain.
      - Before pool
      - With pool
      - Speedup
-   * - Single 256 px ``read_region`` with ``device="cuda"``
+   * - Single 256 px ``read_region()`` with ``device="cuda"``
      - 3.76 ms
      - 0.515 ms
      - ~7.3×
@@ -159,7 +165,7 @@ gain.
      - 8.36 ms
      - 4.50 ms
      - ~1.9×
-   * - CPU reference (single 256 px)
+   * - CPU reference, single 256 px
      - 0.18 ms
      - 0.18 ms
      - N/A
@@ -201,10 +207,10 @@ implementations in ``cucim.skimage``:
 Portable manylinux wheels
 -------------------------
 
-Prebuilt ``amd-hipcim`` wheels target the ``manylinux_2_28`` standard (glibc
-2.28) and are repaired with ``auditwheel``. Wheels run on any glibc >= 2.28
-Linux distribution, for example Ubuntu 20.04+, Debian 10+, RHEL/AlmaLinux/Rocky
-8+, and SUSE, rather than requiring Ubuntu 24.04.
+Prebuilt ``amd-hipcim`` wheels target the ``manylinux_2_28`` standard and glibc
+2.28. ``auditwheel`` repairs the wheels. They run on Linux distributions with
+glibc 2.28 or later, for example Ubuntu 20.04 and later, Debian 10 and later,
+RHEL 8 and later, AlmaLinux 8 and later, Rocky Linux 8 and later, and SUSE.
 
 Graceful plugin degradation
 ---------------------------
@@ -213,10 +219,11 @@ When a plugin fails to load at runtime because ``librocjpeg.so.1`` isn't
 installed, hipCIM logs a warning and continues with the remaining plugins. NIfTI and DICOM reads can succeed even on hosts where GPU
 slide-format libraries are absent.
 
-Bug fixes
-=========
+Resolved issues
+===============
 
-The following table lists bug fixes in this release.
+This release resolves issues in rocJPEG decoding, medical imaging, and image
+processing.
 
 .. list-table::
    :header-rows: 1
@@ -242,24 +249,27 @@ The following table lists bug fixes in this release.
    * - NIfTI big-endian
      - Fixed voxel byte-swap for big-endian NIfTI-1 volumes
    * - Separable filter precision
-     - Fixed int64/uint64 min/max separable filter precision loss
+     - Fixed ``int64`` and ``uint64`` minimum and maximum separable filter
+       precision loss
    * - Integer interpolation on HIP
-     - Fixed undefined-behaviour narrowing in integer interpolation on the HIP
+     - Fixed undefined-behavior narrowing in integer interpolation on the HIP
        backend
 
 Known limitations
 =================
 
-- OME-TIFF Z/T axis metadata: multi-page TIFFs surface as a flat level list with
-  ``dims="YXC"``. Z/T axis population from OME-XML isn't implemented yet
-- NIfTI-1 complex64, complex128, and RGB/RGBA voxel types aren't supported.
-  Opening such a volume raises ``Unsupported NIfTI datatype``
-- DICOM MONOCHROME1 pixel data is returned as stored. The photometric inversion
-  isn't applied automatically
+- OME-TIFF Z and T axis metadata isn't supported. Multi-page TIFFs surface as a
+  flat level list with ``dims="YXC"``. OME-XML Z and T axis population isn't
+  implemented yet.
+- NIfTI-1 ``complex64``, ``complex128``, and RGB or RGBA voxel types aren't supported.
+  Opening such a volume raises ``Unsupported NIfTI datatype``.
+- hipCIM returns DICOM ``MONOCHROME1`` pixel data as stored. It doesn't apply
+  photometric inversion automatically.
 - DICOM multi-frame, DICOM-WSI, DICOM-SEG, and DICOM SR aren't supported in
-  Phase 1
-- JPEG 2000 GPU decode: no ROCm-native JP2K GPU decoder exists. JP2K tiles
-  always decode on CPU with OpenJPEG
-- Vectra-QPTIFF: 2 of 6 test files fail to open due to a proprietary metadata
-  variant
-- Non-JPEG tile formats (PNG, LZW, raw) within TIFF are read on CPU
+  Phase 1.
+- JPEG 2000 GPU decode isn't supported because no ROCm-native JP2K GPU decoder
+  exists. JP2K tiles always decode on the CPU with OpenJPEG.
+- Two of six Vectra-QPTIFF test files fail to open because of a proprietary
+  metadata variant.
+- hipCIM reads non-JPEG PNG, LZW, and raw tile formats within TIFF files on the
+  CPU.

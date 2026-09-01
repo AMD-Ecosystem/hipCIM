@@ -8,19 +8,19 @@
 What is hipCIM?
 ****************
 
-hipCIM is the AMD/ROCm port of `rapidsai/cucim <https://github.com/rapidsai/cucim>`_ for
+hipCIM is the AMD ROCm port of `rapidsai/cucim <https://github.com/rapidsai/cucim>`_ for
 GPU-accelerated biomedical image I/O and N-dimensional image processing on AMD Instinct GPUs.
 The library provides a drop-in replacement API for `cuCIM
-<https://docs.rapids.ai/api/cucim/stable/>`_, allowing existing Python code to
-run unchanged on AMD hardware.
+<https://docs.rapids.ai/api/cucim/stable/>`_ that lets existing Python code run
+unchanged on AMD hardware.
 
 Derived from the `NVIDIA RAPIDS open-source project cuCIM
-<https://docs.rapids.ai/api/cucim/stable/>`_, hipCIM maintains full API compatibility with the
-cuCIM library. This lets you transition workloads to AMD devices without :doc:`hipification
-<hipify:index>` or changes to your existing codebase.
+<https://docs.rapids.ai/api/cucim/stable/>`_, hipCIM maintains the cuCIM API
+surface. This lets you transition workloads to AMD devices without
+:doc:`hipification <hipify:index>` or changes to your existing codebase.
 
 hipCIM is an open-source library for GPU-accelerated computer vision and image processing. It
-targets multidimensional images in biomedical, geospatial, materials and life sciences, and remote
+targets multidimensional images in biomedical, geospatial, materials, life sciences, and remote
 sensing. hipCIM supports GPU-accelerated I/O and N-dimensional processing for digital pathology,
 CT, MRI, PET, and related modalities.
 
@@ -28,23 +28,26 @@ Architecture
 ============
 
 hipCIM exposes a C++ plugin architecture and Python bindings through the ``cucim`` module via
-pybind11. Two runtime plugins ship with the library:
+pybind11. Two runtime plugins ship with the library. The ``plugin_version`` placeholder identifies
+the plugin version in each file name.
 
-- ``hipcim.kit.hipslide@<version>.so``: Whole Slide Image, or WSI, I/O for SVS,
-  OME-TIFF, multi-page TIFF, and Philips TIFF, with GPU-accelerated JPEG tile
-  decode via rocJPEG. Built from the ``cucim.kit.cuslide`` sources.
+- ``hipcim.kit.hipslide@plugin_version.so`` provides Whole Slide Image, or WSI,
+  I/O for SVS, OME-TIFF, multi-page TIFF, and Philips TIFF. rocJPEG provides
+  GPU-accelerated JPEG tile decoding. The ``cucim.kit.cuslide`` sources build
+  the plugin.
 
-- ``hipcim.kit.hipmed@<version>.so``: Volumetric medical image I/O for NIfTI-1
-  ``.nii``/``.nii.gz`` and single-frame DICOM ``.dcm``. Registers the
-  ``cucim.kit.cumed`` interface. Built from the ``cucim.kit.cumed`` sources.
+- ``hipcim.kit.hipmed@plugin_version.so`` provides volumetric medical image I/O
+  for NIfTI-1 ``.nii`` and ``.nii.gz`` files and single-frame DICOM ``.dcm``
+  files. The plugin registers the ``cucim.kit.cumed`` interface. The
+  ``cucim.kit.cumed`` sources build the plugin.
 
 ``cucim.skimage`` is a CuPy-backed GPU port of scikit-image for image transforms,
-filtering, morphology, segmentation, and colour operations.
+filtering, morphology, segmentation, and color operations.
 
 Capabilities
 ============
 
-hipCIM supports the following workloads:
+hipCIM supports these workloads:
 
 - Efficient image I/O for large images, including whole-slide digital pathology
 
