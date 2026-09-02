@@ -252,7 +252,7 @@ remaining plugins. NIfTI and DICOM reads can still succeed.
       export LIBVA_DRIVERS_PATH="${ROCM_LIB}"
       export LIBVA_DRIVER_NAME=amdgpu
 
-Getting started
+Sample usage
 ===============
 
 Use this sample to get started with hipCIM.
