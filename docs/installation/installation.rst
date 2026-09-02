@@ -55,7 +55,7 @@ Set up the environment before installing hipCIM.
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
                      python3 python3-venv python3-dev libpython3-dev cmake
 
-3. Create the Python virtual environment and install the ROCm 10.0 SDK from the
+3. Create the Python virtual environment and install the ROCm 10.0.0 SDK from the
    public pip index.
 
    .. code:: shell
@@ -153,7 +153,7 @@ Installing hipCIM using AMD PyPI
 ================================
 
 hipCIM users who don't intend to develop for the library can install hipCIM from
-`AMD PyPI <https://pypi.amd.com/simple/>`_ using the ROCm 10.0 index URL in the
+`AMD PyPI <https://pypi.amd.com/simple/>`_ using the ROCm 10.0.0 index URL in the
 installation commands.
 
 .. note::
@@ -187,7 +187,7 @@ installation commands.
 
       pip show -v amd-hipcim
 
-   Expected ``pip show`` output for a ROCm 10.0 wheel install:
+   Expected ``pip show`` output for a ROCm 10.0.0 wheel install:
 
    .. code:: shell
 

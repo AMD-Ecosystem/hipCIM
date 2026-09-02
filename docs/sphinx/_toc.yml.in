@@ -6,17 +6,12 @@ defaults:
   numbered: False
 root: index
 subtrees:
-- entries:
-  - file: what-is-hipcim
-    title: What is hipCIM
 - caption: Install
   entries:
   - file: installation/installation
     title: Installing hipCIM
 - caption: Reference
   entries:
-  - file: reference/release-notes
-    title: Release notes
   - file: reference/supported-functionality
     title: Supported image formats
 - caption: Related content
