@@ -16,7 +16,7 @@ hipCIM features include:
 
 - **N-dimensional image processing:** Enables processing of multidimensional images common in biomedical imaging and other fields.
 
-- **GPU acceleration:** Leverages GPUs to expedite computationally intensive tasks such as image processing.
+- **GPU acceleration:** Uses GPUs to expedite computationally intensive tasks such as image processing.
 
 - **Extensible toolkit:** Offers both C++ and Python APIs, as well as a flexible mechanism for extensions using plugins.
 
