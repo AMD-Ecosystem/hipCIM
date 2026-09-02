@@ -8,7 +8,7 @@
 hipCIM documentation
 *************************
 
-The hipCIM library is an open-source solution developed to accelerate computer vision and image processing capabilities for multidimensional images. It's used in biomedical, geospatial, material and life sciences, as well as remote sensing use cases. It facilitates efficient loading and processing of images from modalities such as digital pathology, CT, MRI, and PET.
+The hipCIM library is an open-source solution developed to accelerate computer vision and image processing capabilities for multidimensional images. It's used in biomedical, geospatial, material and life sciences, as well as remote sensing use cases. It facilitates efficient loading and processing of images from modalities such as digital pathology, CT, MRI, and PET. hipCIM provides a drop-in replacement API for cuCIM, allowing existing Python code to run on AMD hardware without requiring any changes.
 
 hipCIM features include:
 
