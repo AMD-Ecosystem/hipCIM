@@ -17,8 +17,10 @@ except ModuleNotFoundError:  # Python < 3.11
 from setuptools import setup
 from setuptools.dist import Distribution as _Distribution
 
-# ROCm series to pin the [rocm] extra against when it cannot be detected.
-DEFAULT_ROCM_SERIES = "7.14"
+# ROCm release series (MAJOR.MINOR) to pin the [rocm] extra against when it
+# cannot be detected. This must track the ROCm *release* (the `rocm` pip package
+# version, e.g. 10.0.x), NOT the HIP version (e.g. 7.x).
+DEFAULT_ROCM_SERIES = "10.0"
 
 # AMD GPU architectures for the [rocm] device extras when GPU targets are unset.
 DEFAULT_GPU_ARCHS = ("gfx942", "gfx950")
@@ -36,11 +38,15 @@ def _run(cmd):
         return ""
 
 
-def _hip_version_from_headers():
-    """HIP ``MAJOR.MINOR`` parsed from ``hip_version.h`` on disk, or "" if it is
-    not found. This reads a file (no subprocess), so it still works under ``pip``
-    build isolation, where the PATH-based ``hipcc`` / ``rocm-sdk`` console-script
-    probes are not reachable. Looks under ROCM_PATH, ROCM_HOME and ``/opt/rocm``.
+def _rocm_release_from_disk():
+    """ROCm release ``MAJOR.MINOR`` read from files on disk, or "" if not found.
+    Reads files only (no subprocess), so it still works under ``pip`` build
+    isolation, where the PATH-based ``rocm-sdk`` console-script probe may not be
+    reachable. Two layouts are handled: the pip ROCm SDK, whose release is the
+    ``rocm`` package version in its ``*.dist-info`` dir next to ROCM_PATH's
+    ``_rocm_sdk_*`` tree; and a classic ``/opt/rocm``, whose release is in
+    ``.info/version``. The HIP header is deliberately not used -- it carries the
+    HIP version (e.g. 7.x), not the ROCm release (e.g. 10.0).
     """
     for root in (
         os.environ.get("ROCM_PATH"),
@@ -49,30 +55,37 @@ def _hip_version_from_headers():
     ):
         if not root:
             continue
+        root = Path(root)
+        # pip ROCm SDK: ROCM_PATH is .../site-packages/_rocm_sdk_devel, so the
+        # `rocm` package dist-info sits in the parent site-packages dir.
+        for dist in sorted(root.parent.glob("rocm-*.dist-info")):
+            match = re.search(r"rocm-(\d+\.\d+)", dist.name)
+            if match:
+                return match.group(1)
+        # Classic /opt/rocm: the release version lives in .info/version.
         try:
-            text = (Path(root) / "include" / "hip" / "hip_version.h").read_text()
+            text = (root / ".info" / "version").read_text()
         except OSError:
             continue
-        major = re.search(r"#define\s+HIP_VERSION_MAJOR\s+(\d+)", text)
-        minor = re.search(r"#define\s+HIP_VERSION_MINOR\s+(\d+)", text)
-        if major and minor:
-            return f"{major.group(1)}.{minor.group(1)}"
+        match = re.search(r"(\d+\.\d+)", text)
+        if match:
+            return match.group(1)
     return ""
 
 
 def _detect_rocm_series():
-    """ROCm MAJOR.MINOR this wheel targets, for the ``[rocm]`` extra pin. First
-    match wins: HIPCIM_ROCM_SERIES env var, HIP version from ``hip_version.h``
-    (works under ``pip`` build isolation), ``hipcc`` HIP version, ``rocm-sdk
-    version`` (pip ROCm), else DEFAULT_ROCM_SERIES.
+    """ROCm release ``MAJOR.MINOR`` this wheel targets, for the ``[rocm]`` extra
+    pin. This is the ROCm *release* version (matching the `rocm` pip package,
+    e.g. 10.0), not the HIP version. First match wins: HIPCIM_ROCM_SERIES env
+    var, the ROCm release read from disk (works under ``pip`` build isolation),
+    ``rocm-sdk version`` (pip ROCm), else DEFAULT_ROCM_SERIES.
     """
-    for text, pattern in (
-        (os.environ.get("HIPCIM_ROCM_SERIES", ""), r"(\d+\.\d+)"),
-        (_hip_version_from_headers(), r"(\d+\.\d+)"),
-        (_run(["hipcc", "--version"]), r"HIP version:\s*(\d+\.\d+)"),
-        (_run(["rocm-sdk", "version"]), r"(\d+\.\d+)"),
+    for text in (
+        os.environ.get("HIPCIM_ROCM_SERIES", ""),
+        _rocm_release_from_disk(),
+        _run(["rocm-sdk", "version"]),
     ):
-        match = re.search(pattern, text)
+        match = re.search(r"(\d+\.\d+)", text)
         if match:
             return match.group(1)
     return DEFAULT_ROCM_SERIES
@@ -97,7 +110,7 @@ def _rocm_requirement():
     """The ``rocm`` SDK requirement for the [rocm] extra: the runtime libraries,
     the development tools, plus a device extra per targeted GPU arch, pinned to
     the built ROCm series, e.g.
-    ``rocm[libraries,devel,device-gfx942,device-gfx950]==7.14.*``.
+    ``rocm[libraries,devel,device-gfx942,device-gfx950]==10.0.*``.
 
     ``devel`` is required because amd-cupy JIT-compiles HIP kernels at runtime via
     ``hipcc``; without the ROCm development tree the first GPU operation fails with
