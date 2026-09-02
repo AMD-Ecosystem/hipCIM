@@ -8,7 +8,8 @@
 Installing hipCIM
 ************************
 
-hipCIM can be installed using :ref:`AMD PyPI <install-package>` or it can be :ref:`built from source <source-build>`.
+You can install hipCIM from :ref:`AMD PyPI <install-package>`, from a
+:ref:`Docker container <install-docker>`, or :ref:`from source <source-build>`.
 
 System requirements:
 
@@ -25,22 +26,74 @@ System requirements:
    ``manylinux_2_28`` standard and run on Linux distributions with glibc 2.28 or
    later.
 
-Setting up the environment
-==========================
+.. _install-package:
 
-Set up the environment before installing hipCIM.
+Installing hipCIM using AMD PyPI
+=================================
 
-1. Optionally start an Ubuntu 24.04 Docker container.
+Install the prebuilt wheel from `AMD PyPI <https://pypi.amd.com/simple/>`_.
+Compilation isn't required. 
+
+If ROCm 10.0.0 is already installed at the system level or in the active
+virtual environment, install ``amd-hipcim``. The package pulls in CuPy as
+``amd-cupy`` from the public AMD index.
+
+.. code:: shell
+
+   pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
+
+If ROCm 10.0.0 isn't installed, install ``amd-hipcim[rocm]``. The ``rocm`` extra
+pulls in the ROCm runtime. Provide both the CuPy and ROCm public indexes.
+
+.. code:: shell
+
+   pip install "amd-hipcim[rocm]" \
+     --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+     --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
+
+
+Verify the installation:
+
+.. code:: shell
+
+   pip show -v amd-hipcim
+   python -c "import cucim; print(cucim.__version__)"
+
+Expected output includes ``26.06.00``.
+
+.. _install-docker:
+
+Installing hipCIM using Docker
+===============================
+
+Use a plain Ubuntu 24.04 Docker container for hipCIM.
+
+1. Start an Ubuntu 24.04 Docker container.
 
    .. code:: shell
 
-      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true   \
-      --shm-size=128GB --network=host --device=/dev/kfd     \
-      --device=/dev/dri --group-add video -it               \
-      -v $HOME:$HOME  --name ${LOGNAME}_rocm                \
-                                       ubuntu:24.04
+      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true \
+        --shm-size=128GB --network=host --device=/dev/kfd \
+        --device=/dev/dri --group-add video -it \
+        -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
 
-2. Install the non-ROCm system dependencies.
+2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
+   this image.
+
+   .. code:: shell
+
+      pip install "amd-hipcim[rocm]" \
+        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
+
+.. _source-build:
+
+Building hipCIM from source
+===========================
+
+Build hipCIM from source if you intend to develop for or contribute to the hipCIM project.
+
+1. Install the non-ROCm system dependencies. 
 
    .. code:: shell
 
@@ -55,8 +108,8 @@ Set up the environment before installing hipCIM.
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
                      python3 python3-venv python3-dev libpython3-dev cmake
 
-3. Create a Python virtual environment and install the ROCm 10.0.0 SDK from the
-   public pip index.
+2. Create a Python virtual environment and install the ROCm 10.0.0 SDK from
+   the public pip index.
 
    .. code:: shell
 
@@ -65,205 +118,83 @@ Set up the environment before installing hipCIM.
       pip install --upgrade pip
       pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 
-4. Set the environment variables. Set ``AMDGPU_TARGETS`` to the GFX target for
-   your GPU. Use only one value.
+3. Set the environment variables. ROCm 10.0.0 is a pip SDK, so resolve its root
+   with ``rocm-sdk``.
 
    .. code:: shell
 
       export ROCM_HOME=$(rocm-sdk path --root)
-      # MI300X / MI325X
-      export AMDGPU_TARGETS=gfx942
-      # MI350X / MI355X
-      # export AMDGPU_TARGETS=gfx950
+      export AMDGPU_TARGETS="gfx942;gfx950"
 
-.. _source-build:
-
-Building hipCIM from source
-===========================
-
-Build hipCIM from source if you intend to develop for the library.
-
-1. Install dependencies.
-
-   .. code:: shell
-
-      pip install --upgrade pip
-
-2. Download the latest version of hipCIM from the git repository.
+4. Clone the repository and build hipCIM.
 
    .. code:: shell
 
       git clone https://github.com/AMD-Ecosystem/hipCIM.git
       cd hipCIM
-
-3. Install the rest of the dependencies.
-
-   .. code:: shell
-
       pip install -r ./requirements.txt
+      ./run_amd build_local cpp release
+      ./run_amd build_local hipcim release
+      pip install amd-cupy --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
+      python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
 
-4. Build and install hipCIM.
-
-   a. Build the base C++ libraries.
-
-      .. code:: shell
-
-         ./run_amd build_local cpp release
-
-   b. Build the Python bindings.
-
-      .. code:: shell
-
-         ./run_amd build_local hipcim release
-
-   c. Install the Python bindings.
-
-      .. code:: shell
-
-         # Install CuPy from the public AMD index first
-         pip install amd-cupy --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
-         python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
-
-5. Verify the installation.
-
-   a. Generate test fixtures. You can run this step more than once. Existing
-      files are left unchanged. ``run_amd`` also runs it automatically when you
-      execute the C++ tests.
-
-      .. code:: shell
-
-         ./test_data/gen_images.sh
-
-   b. Run the tests in the base C++ libraries. The ``release`` argument is
-      accepted but unused by ``test_cpp``.
-
-      .. code:: shell
-
-         ./run_amd test cpp release
-
-   c. Run the Python tests.
-
-      .. code:: shell
-
-         ./run_amd test_python
-
-.. _install-package:
-
-Installing hipCIM using AMD PyPI
-================================
-
-hipCIM users who don't intend to develop for the library can install hipCIM from
-`AMD PyPI <https://pypi.amd.com/simple/>`_ using the ROCm 10.0.0 index URL in the
-installation commands.
-
-.. note::
-
-   The prebuilt ``amd-hipcim`` wheels are built against the `manylinux_2_28
-   <https://github.com/pypa/manylinux>`_ standard and repaired with
-   ``auditwheel``. They're portable across Linux distributions with glibc 2.28
-   or later and Python 3.12. Supported distributions include Ubuntu 20.04 and
-   later, Debian 10 and later, RHEL 8 and later, AlmaLinux 8 and later, Rocky
-   Linux 8 and later, and SUSE.
-
-1. Install hipCIM.
-
-   If ROCm is already installed, install ``amd-hipcim``.
+5. Run the tests.
 
    .. code:: shell
 
-      pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
-
-   If ROCm isn't already installed, install ``amd-hipcim[rocm]``.
-
-   .. code:: shell
-
-      pip install "amd-hipcim[rocm]" \
-        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
-
-2. Verify the installation.
-
-   .. code:: shell
-
-      pip show -v amd-hipcim
-
-   Expected ``pip show`` output for a ROCm 10.0.0 wheel install:
-
-   .. code:: shell
-
-      Name: amd-hipcim
-      Version: 26.06.00
-      Summary: hipCIM - an extensible toolkit designed to provide GPU accelerated I/O, computer vision & image processing primitives for N-Dimensional images with a focus on biomedical imaging.
-      Home-page: https://rocm.docs.amd.com/projects/hipCIM/en/latest/
-      Author: AMD Corporation
-      Author-email:
-      License: Apache 2.0
-      Location: /scratch/integration/hipCIM/hipcim_dev/lib/python3.12/site-packages
-      Requires: amd-cupy, click, lazy-loader, numpy, scikit-image, scipy
-      Required-by:
-      Metadata-Version: 2.4
-      Installer: pip
-      Classifiers:
-         Development Status :: 5 - Production/Stable
-         Intended Audience :: Developers
-         Intended Audience :: Education
-         Intended Audience :: Science/Research
-         Intended Audience :: Healthcare Industry
-         Topic :: Scientific/Engineering
-         Operating System :: POSIX :: Linux
-         Environment :: Console
-         Environment :: GPU :: AMD Instinct :: MI300
-         License :: OSI Approved :: Apache Software License
-         Programming Language :: C++
-         Programming Language :: Python
-         Programming Language :: Python :: 3
-      Entry-points:
-         [console_scripts]
-         cucim = cucim.clara.cli:main
-      Project-URLs:
-         Homepage, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
-         Documentation, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
-         Source, https://github.com/AMD-Ecosystem/hipCIM
-         Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
+      ./run_amd test cpp release
+      ./run_amd test_python
 
 .. _rocjpeg-runtime:
 
 rocJPEG and the amdgpu VA-API driver
-========================================================
+======================================
 
-rocJPEG isn't shipped inside the ``amd-hipcim`` wheel. It's supplied with a ROCm installation. The hipCIM installation won't fail if rocJPEG is missing, but slide formats won't open without rocJPEG's ``librocjpeg.so.1`` and its matching amdgpu VA-API driver.
+Whole slide image decode for SVS and TIFF runs through the ``cuslide`` plugin.
+That plugin has a load-time dependency on ``librocjpeg.so.1`` and a matching
+amdgpu VA-API driver. If either the library or the driver can't be loaded, the ``cuslide`` plugin
+fails to register. CPU fallback for SVS and TIFF is then unavailable, and
+hipCIM raises ``Cannot find a plugin to handle 'slide.svs'!``.
 
-At load time, if ``librocjpeg.so.1`` or its VA-API driver can't be loaded, the
-hipslide plugin fails to register. hipCIM logs a warning and continues with the
-remaining plugins. NIfTI and DICOM reads can still succeed.
+When ROCm 10.0.0 is installed from the AMD pip index, both libraries ship in
+the ROCm SDK wheels under ``_rocm_sdk_devel/lib``. hipCIM preloads them on
+import. ``cucim.clara`` preloads ``amdhip64`` and ``rocjpeg``.
 
-.. note::
+For a classic ``/opt/rocm`` install or a custom layout, set the following environment variables to ensure that the driver and library are in the path:
 
-   If rocJPEG still fails to load after import, add the ROCm SDK library
-   directory to the loader path and point libva at the bundled amdgpu driver.
+.. code:: shell
 
-   .. code:: shell
+   export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+   export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib"
+   export LIBVA_DRIVER_NAME=amdgpu
 
-      # pip/venv ROCm: the _rocm_sdk_devel/lib directory that holds librocjpeg.so.1
-      # and the amdgpu VA-API driver. For a classic install use ${ROCM_PATH}/lib.
-      export ROCM_LIB=$(python -c "import sysconfig, os; print(os.path.join(sysconfig.get_paths()['purelib'], '_rocm_sdk_devel', 'lib'))")
+Environment variables
+======================
 
-      export LD_LIBRARY_PATH="${ROCM_LIB}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-      export LIBVA_DRIVERS_PATH="${ROCM_LIB}"
-      export LIBVA_DRIVER_NAME=amdgpu
+These environment variables affect a source build and a custom ROCm layout.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 28 44
+
+   * - Variable
+     - Default
+     - Purpose
+   * - ``ROCM_HOME``
+     - Output of ``rocm-sdk path --root``.
+     - Path to the ROCm installation when ROCm 10.0.0 is a pip SDK.
+   * - ``AMDGPU_TARGETS``
+     - ``gfx942;gfx950``
+     - Semicolon-separated list of GPU architectures to build for.
 
 Sample usage
-===============
+============
 
-Use this sample to get started with hipCIM.
+``CuImage`` opens a generated image and reads a region on the GPU.
 
 .. code:: shell
 
    ./test_data/gen_images.sh
-
-The sample opens the generated image with ``CuImage`` and reads a region on the GPU.
-
-The Python code opens the generated image.
 
 .. code-block:: python
 
