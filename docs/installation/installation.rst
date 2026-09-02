@@ -55,7 +55,7 @@ Set up the environment before installing hipCIM.
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
                      python3 python3-venv python3-dev libpython3-dev cmake
 
-3. Create the Python virtual environment and install the ROCm 10.0.0 SDK from the
+3. Create a Python virtual environment and install the ROCm 10.0.0 SDK from the
    public pip index.
 
    .. code:: shell
