@@ -1,17 +1,23 @@
 .. meta::
-   :description: Install hipCIM from AMD PyPI or build from source
+   :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
    :keywords: AMD-Ecosystem, life sciences, hipCIM installation
 
 .. _installing-hipcim:
 
-************************
+*******************
 Installing hipCIM
-************************
+*******************
 
-You can install hipCIM from :ref:`AMD PyPI <install-package>`, from a
-:ref:`Docker container <install-docker>`, or :ref:`from source <source-build>`.
+This topic discusses how to install hipCIM using the following options:
 
-System requirements:
+- :ref:`Build from source (for developers) <source-build>`
+
+- :ref:`Docker (recommended for isolated environments) <install-docker>`
+
+- :ref:`Recommended: AMD PyPI (for users) <install-package>`
+
+System requirements
+=======================
 
 +--------------+----------------+----------------+----------------------------------+
 | ROCm version | Ubuntu version | Python version | AMD Instinct™ GPU (tested)       |
@@ -21,78 +27,17 @@ System requirements:
 
 .. note::
 
-   Ubuntu 24.04 is the tested reference configuration and the required OS family
-   for a :ref:`source build <source-build>`. The wheels target the
-   ``manylinux_2_28`` standard and run on Linux distributions with glibc 2.28 or
-   later.
-
-.. _install-package:
-
-Installing hipCIM using AMD PyPI
-=================================
-
-Install the prebuilt wheel from `AMD PyPI <https://pypi.amd.com/simple/>`_.
-Compilation isn't required. 
-
-If ROCm 10.0.0 is already installed at the system level or in the active
-virtual environment, install ``amd-hipcim``. The package pulls in CuPy as
-``amd-cupy`` from the public AMD index.
-
-.. code:: shell
-
-   pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
-
-If ROCm 10.0.0 isn't installed, install ``amd-hipcim[rocm]``. The ``rocm`` extra
-pulls in the ROCm runtime. Provide both the CuPy and ROCm public indexes.
-
-.. code:: shell
-
-   pip install "amd-hipcim[rocm]" \
-     --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-     --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
-
-
-Verify the installation:
-
-.. code:: shell
-
-   pip show -v amd-hipcim
-   python -c "import cucim; print(cucim.__version__)"
-
-Expected output includes ``26.06.00``.
-
-.. _install-docker:
-
-Installing hipCIM using Docker
-===============================
-
-Use a plain Ubuntu 24.04 Docker container for hipCIM.
-
-1. Start an Ubuntu 24.04 Docker container.
-
-   .. code:: shell
-
-      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true \
-        --shm-size=128GB --network=host --device=/dev/kfd \
-        --device=/dev/dri --group-add video -it \
-        -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
-
-2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
-   this image.
-
-   .. code:: shell
-
-      pip install "amd-hipcim[rocm]" \
-        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
+   The Ubuntu 24.04 entry above is the tested reference configuration (and the
+   required OS family for a :ref:`source build <source-build>`). The prebuilt
+   ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any
+   glibc >= 2.28 Linux distribution, as described under :ref:`install-package`.
 
 .. _source-build:
 
 Building hipCIM from source
-===========================
+****************************
 
-Build hipCIM from source if you intend to develop for or contribute to the hipCIM project.
-
+To build hipCIM from source, follow the steps given in this section. hipCIM developers should use this installation method. hipCIM users should use the :ref:`Installing hipCIM using AMD PyPI <install-package>`
 1. Install the non-ROCm system dependencies. 
 
    .. code:: shell
@@ -144,6 +89,112 @@ Build hipCIM from source if you intend to develop for or contribute to the hipCI
 
       ./run_amd test cpp release
       ./run_amd test_python
+
+.. _install-docker:
+
+Installing hipCIM using Docker
+===============================
+
+Use a plain Ubuntu 24.04 Docker container for hipCIM.
+
+1. Start an Ubuntu 24.04 Docker container.
+
+   .. code:: shell
+
+      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true \
+        --shm-size=128GB --network=host --device=/dev/kfd \
+        --device=/dev/dri --group-add video -it \
+        -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
+
+2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
+   this image.
+
+   .. code:: shell
+
+      pip install "amd-hipcim[rocm]" \
+        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
+
+.. _install-package:
+
+Installing hipCIM using AMD PyPI 
+***********************************************
+
+Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <https://pypi.amd.com/simple/>`_. This section discusses how to install hipCIM using this package index. hipCIM users should use this installation method. hipCIM developers should use the :ref:`source-build`.
+
+.. note::
+
+   The prebuilt ``amd-hipcim`` wheels are built against the `manylinux_2_28
+   <https://github.com/pypa/manylinux>`_ standard (glibc 2.28) and repaired with
+   ``auditwheel``, so they are portable across any glibc >= 2.28 Linux
+   distribution (for example Ubuntu 20.04+, Debian 10+, RHEL/AlmaLinux/Rocky 8+,
+   and SUSE), not just Ubuntu 24.04. Any distribution providing Python 3.12 and
+   glibc >= 2.28 works; the Ubuntu 24.04 steps are one convenient, tested setup.
+
+1. Install hipCIM. There are two prebuilt options:
+
+   - If ROCm 10.0 is already available (installed at the system level or in the
+     active virtual environment), install ``amd-hipcim``. It pulls in CuPy
+     (``amd-cupy``), a hipCIM dependency, from the public AMD index:
+
+     .. code-block:: shell
+
+      pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
+
+   - If ROCm 10.0 is not installed (no system ROCm and none in the virtual
+     environment), install ``amd-hipcim[rocm]``. The ``rocm`` extra additionally
+     pulls in the ROCm runtime, so provide both the CuPy and ROCm public indexes:
+
+     .. code-block:: shell
+
+      pip install "amd-hipcim[rocm]" \
+        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+        --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
+
+2. Verify the installation.
+
+   .. code-block:: shell
+
+      pip show -v amd-hipcim
+
+   Expected output:
+
+   .. code-block:: shell
+
+      Name: amd-hipcim
+      Version: 25.10.0
+      Summary: hipCIM - an extensible toolkit designed to provide GPU accelerated I/O, computer vision & image processing primitives for N-Dimensional images with a focus on biomedical imaging.
+      Home-page: https://rocm.docs.amd.com/projects/hipCIM/en/latest/
+      Author: AMD Corporation
+      Author-email:
+      License: Apache 2.0
+      Location: /scratch/integration/hipCIM/hipcim_dev/lib/python3.10/site-packages
+      Requires: amd-cupy, click, lazy-loader, numpy, scikit-image, scipy
+      Required-by:
+      Metadata-Version: 2.4
+      Installer: pip
+      Classifiers:
+         Development Status :: 4 - Beta
+         Intended Audience :: Developers
+         Intended Audience :: Education
+         Intended Audience :: Science/Research
+         Intended Audience :: Healthcare Industry
+         Topic :: Scientific/Engineering
+         Operating System :: POSIX :: Linux
+         Environment :: Console
+         Environment :: GPU :: AMD Instinct :: MI300
+         License :: OSI Approved :: Apache Software License
+         Programming Language :: C++
+         Programming Language :: Python
+         Programming Language :: Python :: 3
+      Entry-points:
+         [console_scripts]
+         cucim = cucim.clara.cli:main
+      Project-URLs:
+         Homepage, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
+         Documentation, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
+         Source, https://github.com/AMD-Ecosystem/hipCIM
+         Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
 
 .. _rocjpeg-runtime:
 
