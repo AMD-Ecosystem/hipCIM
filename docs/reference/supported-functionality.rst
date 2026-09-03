@@ -1,17 +1,68 @@
 .. meta::
    :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-   :keywords: AMD-Ecosystem, life sciences, hipCIM installation
+   :keywords: ROCm-LS, life sciences, hipCIM installation
 
 .. _supported-features:
 
 ***********************************
-Supported functionality
+Supported features and limitations
 ***********************************
 
-hipCIM supports the image formats, image operations, and performance characteristics described here.
+This topic discusses the supported features and limitations of hipCIM 26.06.00 as compared to the `cuCIM 26.06.00 <https://github.com/rapidsai/cucim/releases#release-v26.06.00>`_.
 
-Supported image formats
-=======================
+Features
+---------
+
+- **Core image interface (cucim.core):**
+
+  - All primary image manipulation functions (read, write, and resample) are GPU-accelerated with CPU fallbacks.
+
+  - Metadata operations (accessing dtype, dims, and shape) run on CPU only.
+
+- **Image processing (cucim.skimage):**
+
+  - Nearly all transform operations (resize, rotate, and warp) are GPU-accelerated with CPU fallbacks.
+
+  - Complete filter suite (Gaussian, median, and edge detectors) benefits from GPU acceleration.
+
+  - Most morphological operations (erosion, dilation, and opening) are GPU-accelerated.
+
+- **Segmentation:**
+
+  - Several advanced segmentation algorithms (felzenszwalb, quickshift, and active_contour) lack GPU acceleration.
+
+  - Core segmentation operations such as watershed and SLIC are GPU-accelerated.
+
+- **Color operations:**
+
+  - All color space conversions (rgb2gray, rgb2hsv, and rgb2lab) are GPU-accelerated.
+
+  - Specialized medical imaging operations, such as stain separation or combination, that also benefit from GPU acceleration.
+
+- **Whole slide imaging:**
+
+  - Patch extraction operations are GPU-accelerated.
+
+  - Metadata operations run exclusively on the CPU.
+
+- **Measurement functions:**
+
+  - Core measurement functions such as region labeling are GPU-accelerated.
+
+  - Some advanced functions such as ``marching_cubes`` lack GPU acceleration.
+
+Image support
+--------------
+
+hipCIM supports the following image formats:
+
+- Single-level Aperio ScanScope Virtual Slide (SVS) with JPEG compression
+
+- Single-level Philips TIFF with JPEG compression
+
+Note that the image support is limited by `rocJPEG chroma subsampling and hardware capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
+
+hipCIM API mirrors `scikit-image <https://scikit-image.org/>`_ for image manipulation and `OpenSlide <https://openslide.org/>`_ for image loading.
 
 .. list-table::
    :header-rows: 1
@@ -68,7 +119,7 @@ Supported image formats
    provide them.
 
 Not supported
--------------------
+^^^^^^^^^^^^^^
 
 - NDPI, VMS, MIRAX, SCN, BIF, VSI, CZI, ZVI (Zeiss, Hamamatsu, Leica, and others)
 - DICOM-WSI pyramid, DICOM-SEG, DICOM SR, multi-frame DICOM
@@ -77,13 +128,13 @@ Not supported
 - OME-TIFF Z and T axis metadata (dims stay ``YXC``; OME-XML Z and T parse planned)
 
 Image operations
-==================
+-----------------
 
 ``cucim.core`` covers the image interface. ``cucim.skimage`` covers image
 processing.
 
 cucim.core: Image interface
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -106,7 +157,7 @@ cucim.core: Image interface
      - ✓
 
 cucim.skimage: Image processing
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -144,7 +195,7 @@ cucim.skimage: Image processing
      - Limited
 
 Not GPU-accelerated
----------------------
+^^^^^^^^^^^^^^^^^^^^
 
 - Affine, similarity, and Euclidean transforms
 - Denoising (TV, bilateral, wavelet, non-local means). ``rolling_ball``
@@ -154,3 +205,33 @@ Not GPU-accelerated
 - felzenszwalb, quickshift, active contour segmentation
 - watershed, SLIC
 - marching cubes
+
+Limitations
+------------
+
+- Multilevel TIFF image support is under development.
+
+- No Support for JPEG2K compression.
+
+- No GDS support
+
+- No Dask support
+
+- No support for the following image processing operations:
+
+  - affine, similarity, euclidean, threshold_niblack, threshold_sauvola, convex_hull_image, corner_fast denoise_bilateral, denoise_wavelet, wiener, richardson_lucy, unsupervised_wiener, estimate_sigma, random_walker, felzenszwalb,slic, quickshift, watershed, active_contour, and all exposure operations.
+
+- Registration:
+
+  - All registration functions (optical flow and daemons) are GPU-accelerated but typically lack CPU fallbacks.
+
+- Clara DL pipeline:
+
+  - Data loading has partial GPU acceleration.
+
+  - Most Clara transformations are GPU-accelerated with CPU fallbacks.
+
+- Backend differences:
+
+  - As hipCIM is an AMD ROCm port of cuCIM, it might differ from cuCIM in performance or numerical behavior. Validate results for mission-critical steps and `report reproducible issues <https://github.com/ROCm-LS/ROCm-LS-Docs/issues/new>`_.
+
