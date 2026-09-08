@@ -9,7 +9,7 @@ subtrees:
 - caption: Install
   entries:
   - file: installation/installation
-    title: Installation
+    title: hipCIM Installation
 - caption: Reference
   entries:
   - file: reference/supported-functionality
