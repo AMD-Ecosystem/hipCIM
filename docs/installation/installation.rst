@@ -10,11 +10,12 @@ Installing hipCIM
 
 This topic discusses how to install hipCIM using the following options:
 
-- :ref:`Build from source (for developers) <source-build>`
-
 - :ref:`Docker (recommended for isolated environments) <install-docker>`
 
 - :ref:`Recommended: AMD PyPI (for users) <install-package>`
+
+- :ref:`Build from source (for developers) <source-build>`
+
 
 System requirements
 =======================
@@ -31,64 +32,6 @@ System requirements
    required OS family for a :ref:`source build <source-build>`). The prebuilt
    ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any
    glibc >= 2.28 Linux distribution, as described under :ref:`install-package`.
-
-.. _source-build:
-
-Building hipCIM from source
-****************************
-
-To build hipCIM from source, follow the steps given in this section. hipCIM developers should use this installation method. hipCIM users should use the :ref:`Installing hipCIM using AMD PyPI <install-package>`
-1. Install the non-ROCm system dependencies. 
-
-   .. code:: shell
-
-      apt-get update && \
-      apt-get install -y lsb-release gnupg curl ca-certificates && \
-      curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
-          | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
-      echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-          > /etc/apt/sources.list.d/kitware.list && \
-      apt-get update && \
-      apt-get install -y git wget gcc g++ ninja-build git-lfs \
-                     yasm libopenslide-dev libwebp-dev libzstd-dev \
-                     python3 python3-venv python3-dev libpython3-dev cmake
-
-2. Create a Python virtual environment and install the ROCm 10.0.0 SDK from
-   the public pip index.
-
-   .. code:: shell
-
-      python3 -m venv hipcim_dev
-      source hipcim_dev/bin/activate
-      pip install --upgrade pip
-      pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
-
-3. Set the environment variables. ROCm 10.0.0 is a pip SDK, so resolve its root
-   with ``rocm-sdk``.
-
-   .. code:: shell
-
-      export ROCM_HOME=$(rocm-sdk path --root)
-      export AMDGPU_TARGETS="gfx942;gfx950"
-
-4. Clone the repository and build hipCIM.
-
-   .. code:: shell
-
-      git clone https://github.com/AMD-Ecosystem/hipCIM.git
-      cd hipCIM
-      pip install -r ./requirements.txt
-      ./run_amd build_local cpp release
-      ./run_amd build_local hipcim release
-      pip install amd-cupy --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
-      python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
-
-5. Run the tests.
-
-   .. code:: shell
-
-      ./run_amd test cpp release
-      ./run_amd test_python
 
 .. _install-docker:
 
@@ -118,7 +61,7 @@ Use a plain Ubuntu 24.04 Docker container for hipCIM.
 .. _install-package:
 
 Installing hipCIM using AMD PyPI 
-***********************************************
+==================================
 
 Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <https://pypi.amd.com/simple/>`_. This section discusses how to install hipCIM using this package index. hipCIM users should use this installation method. hipCIM developers should use the :ref:`source-build`.
 
@@ -195,6 +138,65 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
          Documentation, https://rocm.docs.amd.com/projects/hipCIM/en/latest/
          Source, https://github.com/AMD-Ecosystem/hipCIM
          Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
+
+
+.. _source-build:
+
+Building hipCIM from source
+=============================
+
+To build hipCIM from source, follow the steps given in this section. hipCIM developers should use this installation method. hipCIM users should use the :ref:`Installing hipCIM using AMD PyPI <install-package>`
+1. Install the non-ROCm system dependencies. 
+
+   .. code:: shell
+
+      apt-get update && \
+      apt-get install -y lsb-release gnupg curl ca-certificates && \
+      curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+          | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+      echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+          > /etc/apt/sources.list.d/kitware.list && \
+      apt-get update && \
+      apt-get install -y git wget gcc g++ ninja-build git-lfs \
+                     yasm libopenslide-dev libwebp-dev libzstd-dev \
+                     python3 python3-venv python3-dev libpython3-dev cmake
+
+2. Create a Python virtual environment and install the ROCm 10.0.0 SDK from
+   the public pip index.
+
+   .. code:: shell
+
+      python3 -m venv hipcim_dev
+      source hipcim_dev/bin/activate
+      pip install --upgrade pip
+      pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+
+3. Set the environment variables. ROCm 10.0.0 is a pip SDK, so resolve its root
+   with ``rocm-sdk``.
+
+   .. code:: shell
+
+      export ROCM_HOME=$(rocm-sdk path --root)
+      export AMDGPU_TARGETS="gfx942;gfx950"
+
+4. Clone the repository and build hipCIM.
+
+   .. code:: shell
+
+      git clone https://github.com/AMD-Ecosystem/hipCIM.git
+      cd hipCIM
+      pip install -r ./requirements.txt
+      ./run_amd build_local cpp release
+      ./run_amd build_local hipcim release
+      pip install amd-cupy --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
+      python3 -m pip install python/cucim --extra-index-url https://pypi.amd.com/rocm-10.0.0/simple/
+
+5. Run the tests.
+
+   .. code:: shell
+
+      ./run_amd test cpp release
+      ./run_amd test_python
 
 .. _rocjpeg-runtime:
 

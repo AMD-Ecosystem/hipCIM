@@ -26,7 +26,7 @@ hipCIM key features include:
 
 - **Extensible toolkit:** Offers both C++ and Python APIs, as well as a flexible mechanism for extensions using plugins.
 
-- **Interoperability:** Can be used with other libraries in the ROCm-LS ecosystem and easily interoperate with libraries like `CuPy <https://cupy.dev/>`_.
+- **Interoperability:** Can be used with other libraries in the AMD Life Sciences ecosystem and easily interoperate with libraries like `CuPy <https://cupy.dev/>`_.
 
 - **Accelerated workflows:** Helps accelerate workflows in digital pathology and other fields that utilize large, high-resolution images.
 

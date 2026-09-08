@@ -117,33 +117,3 @@ hipCIM API mirrors `scikit-image <https://scikit-image.org/>`_ for image manipul
    SVS and TIFF files cannot be read at all (``Cannot find a plugin to handle
    '.svs'``). See :ref:`rocjpeg-runtime` for how the ROCm 10.0.0 pip packages
    provide them.
-
-Limitations
-------------
-
-- Multilevel TIFF image support is under development.
-
-- No Support for JPEG2K compression.
-
-- No GDS support
-
-- No Dask support
-
-- No support for the following image processing operations:
-
-  - affine, similarity, euclidean, threshold_niblack, threshold_sauvola, convex_hull_image, corner_fast denoise_bilateral, denoise_wavelet, wiener, richardson_lucy, unsupervised_wiener, estimate_sigma, random_walker, felzenszwalb,slic, quickshift, watershed, active_contour, and all exposure operations.
-
-- Registration:
-
-  - All registration functions (optical flow and daemons) are GPU-accelerated but typically lack CPU fallbacks.
-
-- Clara DL pipeline:
-
-  - Data loading has partial GPU acceleration.
-
-  - Most Clara transformations are GPU-accelerated with CPU fallbacks.
-
-- Backend differences:
-
-  - As hipCIM is an AMD ROCm port of cuCIM, it might differ from cuCIM in performance or numerical behavior. Validate results for mission-critical steps and `report reproducible issues <https://github.com/ROCm-LS/ROCm-LS-Docs/issues/new>`_.
-
