@@ -10,9 +10,9 @@ Installing hipCIM
 
 This topic discusses how to install hipCIM using the following options:
 
-- :ref:`Docker (recommended for isolated environments) <install-docker>`
-
 - :ref:`Recommended: AMD PyPI (for users) <install-package>`
+
+- :ref:`Docker (recommended for isolated environments) <install-docker>`
 
 - :ref:`Build from source (for developers) <source-build>`
 
@@ -32,31 +32,6 @@ System requirements
    required OS family for a :ref:`source build <source-build>`). The prebuilt
    ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any
    glibc >= 2.28 Linux distribution, as described under :ref:`install-package`.
-
-.. _install-docker:
-
-Installing hipCIM using Docker
-===============================
-
-Use a plain Ubuntu 24.04 Docker container for hipCIM.
-
-1. Start an Ubuntu 24.04 Docker container.
-
-   .. code:: shell
-
-      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true \
-        --shm-size=128GB --network=host --device=/dev/kfd \
-        --device=/dev/dri --group-add video -it \
-        -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
-
-2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
-   this image.
-
-   .. code:: shell
-
-      pip install "amd-hipcim[rocm]" \
-        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
 
 .. _install-package:
 
@@ -139,6 +114,31 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
          Source, https://github.com/AMD-Ecosystem/hipCIM
          Tracker, https://github.com/AMD-Ecosystem/hipCIM/issues
 
+
+.. _install-docker:
+
+Installing hipCIM using Docker
+===============================
+
+Use a plain Ubuntu 24.04 Docker container for hipCIM.
+
+1. Start an Ubuntu 24.04 Docker container.
+
+   .. code:: shell
+
+      docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true \
+        --shm-size=128GB --network=host --device=/dev/kfd \
+        --device=/dev/dri --group-add video -it \
+        -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
+
+2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
+   this image.
+
+   .. code:: shell
+
+      pip install "amd-hipcim[rocm]" \
+        --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
 
 .. _source-build:
 
