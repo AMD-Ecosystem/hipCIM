@@ -9,11 +9,10 @@ subtrees:
 - caption: Install
   entries:
   - file: installation/installation
-    title: Installation
+    title: Installing hipCIM
 - caption: Reference
   entries:
   - file: reference/supported-functionality
-    title: Supported functionality
 - caption: Related content
   entries:
   - url: https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html

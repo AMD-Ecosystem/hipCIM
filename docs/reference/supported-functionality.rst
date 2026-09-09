@@ -1,6 +1,6 @@
 .. meta::
    :description: The hipCIM library is a robust open-source solution developed to significantly accelerate computer vision and image processing capabilities
-   :keywords: AMD-Ecosystem, life sciences, hipCIM installation
+   :keywords: ROCm-LS, life sciences, hipCIM installation
 
 .. _supported-features:
 
@@ -8,7 +8,7 @@
 Supported features and limitations
 ***********************************
 
-This topic summarizes the hipCIM features and limitations.
+This topic discusses the supported features and limitations of hipCIM 26.06.00 as compared to the `cuCIM 26.06.00 <https://github.com/rapidsai/cucim/releases#release-v26.06.00>`_.
 
 Features
 ---------
@@ -37,7 +37,7 @@ Features
 
   - All color space conversions (rgb2gray, rgb2hsv, and rgb2lab) are GPU-accelerated.
 
-  - Specialized operations for medical imaging, such as stain separation or combination, also benefit from GPU acceleration.
+  - Specialized medical imaging operations, such as stain separation or combination, that also benefit from GPU acceleration.
 
 - **Whole slide imaging:**
 
@@ -47,9 +47,9 @@ Features
 
 - **Measurement functions:**
 
-  - Core measurement functions like region labeling are GPU-accelerated.
+  - Core measurement functions such as region labeling are GPU-accelerated.
 
-  - Some advanced functions like ``marching_cubes`` lack GPU acceleration.
+  - Some advanced functions such as ``marching_cubes`` lack GPU acceleration.
 
 Image support
 --------------
@@ -62,39 +62,58 @@ hipCIM supports the following image formats:
 
 Note that the image support is limited by `rocJPEG chroma subsampling and hardware capabilities <https://rocm.docs.amd.com/projects/rocJPEG/en/latest/reference/rocjpeg-formats-and-architectures.html>`_.
 
-.. note::
-
-   Reading these formats requires the ``cuslide`` plugin, which has a hard
-   runtime dependency on rocJPEG (``librocjpeg.so.1``) and its amdgpu VA-API
-   driver. If they cannot be loaded, SVS and TIFF reading fails entirely
-   (including the CPU fallback). See :ref:`rocjpeg-runtime` for how these ship
-   and how to make them discoverable.
-
 hipCIM API mirrors `scikit-image <https://scikit-image.org/>`_ for image manipulation and `OpenSlide <https://openslide.org/>`_ for image loading.
 
-Limitations
-------------
+.. list-table::
+   :header-rows: 1
+   :widths: 26 18 38 18
 
-- No Support for JPEG2K compression.
+   * - Format
+     - Extension
+     - Notes
+     - GPU tile decode
+   * - Aperio ScanScope Virtual Slide (SVS), single-level JPEG
+     - ``.svs``
+     - JPEG-compressed tiles; rocJPEG backend
+     - ✓
+   * - Philips TIFF, single-level JPEG
+     - ``.tiff``
+     - JPEG-compressed tiles; rocJPEG backend
+     - ✓
+   * - OME-TIFF (multi-page, Z, T, or channel)
+     - ``.tif``, ``.tiff``, ``.ome.tiff``
+     - Flat page list; JPEG tiles GPU-decoded; non-JPEG tiles CPU-decoded
+     - Partial (JPEG tiles)
+   * - Generic multi-page TIFF
+     - ``.tif``, ``.tiff``
+     - Flat page list; JPEG tiles GPU-decoded
+     - Partial (JPEG tiles)
+   * - Vectra-QPTIFF
+     - ``.qptiff``
+     - Most files supported; 2/6 test files fail (proprietary variant)
+     - Partial
+   * - NIfTI-1 (uncompressed)
+     - ``.nii``
+     - CPU read; all NIfTI-1 data types supported
+     - n/a
+   * - NIfTI-1 (gzip compressed)
+     - ``.nii.gz``
+     - CPU read; libdeflate decompression
+     - n/a
+   * - DICOM (uncompressed, single-frame)
+     - ``.dcm``
+     - Explicit or Implicit VR Little-Endian; CPU read
+     - n/a
+   * - DICOM (JPEG compressed, single-frame)
+     - ``.dcm``
+     - Enabled by default (``CUMED_DICOM_COMPRESSED=ON``)
+     - n/a
 
-- No GDS support
+.. note::
 
-- No Dask support
-
-- No support for the following image processing operations:
-
-  - affine, similarity, euclidean, threshold_niblack, threshold_sauvola, convex_hull_image, corner_fast denoise_bilateral, denoise_wavelet, wiener, richardson_lucy, unsupervised_wiener, estimate_sigma, random_walker, felzenszwalb,slic, quickshift, watershed, active_contour, and all exposure operations.
-
-- Registration:
-
-  - All registration functions (optical flow and daemons) are GPU-accelerated but typically lack CPU fallbacks.
-
-- Clara DL pipeline:
-
-  - Data loading has partial GPU acceleration.
-
-  - Most Clara transformations are GPU-accelerated with CPU fallbacks.
-
-- Backend differences:
-
-  - As hipCIM is an AMD ROCm port of cuCIM, it might differ from cuCIM in performance or numerical behavior. Validate results for mission-critical steps and `report reproducible issues <https://github.com/ROCm-LS/ROCm-LS-Docs/issues/new>`_.
+   SVS and TIFF decode (GPU and CPU fallback) is handled by the ``cuslide``
+   plugin, which loads ``librocjpeg.so.1`` and its amdgpu VA-API driver at
+   startup. If those libraries are unavailable the plugin fails to load and
+   SVS and TIFF files cannot be read at all (``Cannot find a plugin to handle
+   '.svs'``). See :ref:`rocjpeg-runtime` for how the ROCm 10.0.0 pip packages
+   provide them.
