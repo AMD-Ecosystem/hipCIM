@@ -18,7 +18,9 @@ flavor options: rocm, rocm-docs-home, rocm-blogs, rocm-ds, instinct, ai-develope
 '''
 html_theme = "rocm_docs_theme"
 html_theme_options = {"flavor": "rocm-ls"}
-
+html_context = {
+    "docs_header_version": "26.08"
+}
 
 # This section turns on/off article info
 setting_all_article_info = True
