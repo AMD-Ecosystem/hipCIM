@@ -28,26 +28,14 @@ System requirements
 
 .. note::
 
-   The Ubuntu 24.04 entry above is the tested reference configuration (and the
-   required OS family for a :ref:`source build <source-build>`). The prebuilt
-   ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any
-   glibc >= 2.28 Linux distribution, as described under :ref:`install-package`.
-
+   The prebuilt ``amd-hipcim`` wheels target ``manylinux_2_28`` (glibc 2.28) and run on any glibc >= 2.28 Linux distribution with Python 3.12. However, hipCIM has only been tested and validated on Ubuntu 24.04. 
+   
 .. _install-package:
 
 Installing hipCIM using AMD PyPI 
 ==================================
 
-Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <https://pypi.amd.com/simple/>`_. This section discusses how to install hipCIM using this package index. hipCIM users should use this installation method. hipCIM developers should use the :ref:`source-build`.
-
-.. note::
-
-   The prebuilt ``amd-hipcim`` wheels are built against the `manylinux_2_28
-   <https://github.com/pypa/manylinux>`_ standard (glibc 2.28) and repaired with
-   ``auditwheel``, so they are portable across any glibc >= 2.28 Linux
-   distribution (for example Ubuntu 20.04+, Debian 10+, RHEL/AlmaLinux/Rocky 8+,
-   and SUSE), not just Ubuntu 24.04. Any distribution providing Python 3.12 and
-   glibc >= 2.28 works; the Ubuntu 24.04 steps are one convenient, tested setup.
+Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <https://pypi.amd.com/simple/>`_. This section discusses how to install hipCIM using this package index. hipCIM users should use this installation method. hipCIM developers should use :ref:`source-build`.
 
 1. Install hipCIM. There are two prebuilt options:
 
@@ -146,6 +134,7 @@ Building hipCIM from source
 =============================
 
 To build hipCIM from source, follow the steps given in this section. hipCIM developers should use this installation method. hipCIM users should use the :ref:`Installing hipCIM using AMD PyPI <install-package>`
+
 1. Install the non-ROCm system dependencies. 
 
    .. code:: shell
