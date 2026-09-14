@@ -38,7 +38,7 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
 	python3 -m venv hipcim_dev
 	source hipcim_dev/bin/activate
 	pip install --upgrade pip
-	pip install "rocm[libraries,devel]" --index-url https://repo.amd.com/rocm/whl-multi-arch/
+	pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
   ```
 
 - Setup environment variables
@@ -60,7 +60,7 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
   ```
   pip install "amd-hipcim[rocm]" \
     --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-    --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
+    --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
   ```
 
 - Verify installation
@@ -168,7 +168,7 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
 	python3 -m venv hipcim_dev
 	source hipcim_dev/bin/activate
 	pip install --upgrade pip
-	pip install "rocm[libraries,devel]" --index-url https://repo.amd.com/rocm/whl-multi-arch/
+	pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 	pip install -r ./requirements.txt
 	```
 
