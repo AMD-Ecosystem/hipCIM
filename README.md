@@ -184,11 +184,12 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
 	pip list | grep rocm-sdk-device
 	```
 
-  Narrow both together to build for a single GPU, for example `AMDGPU_TARGETS=gfx950` with
-  `rocm[libraries,devel,device-gfx950]`. `run_amd` and `python/cucim/setup.py` (which derives the
-  wheel's `amd-hipcim[rocm]` requirement) read `AMDGPU_TARGETS`, so an architecture listed there
-  without its device wheel produces binaries that cannot run. After adding or removing a device
-  wheel later, run `rocm-sdk init` to relink its files into the devel tree.
+  The command above covers both supported GPUs. To build for just one, name that architecture in
+  both places, for example `AMDGPU_TARGETS=gfx950` with `rocm[libraries,devel,device-gfx950]`.
+  They have to match: the build compiles for whatever `AMDGPU_TARGETS` lists, and an architecture
+  with no device wheel installed produces binaries that cannot run.
+
+  If a device wheel is added or removed later, run `rocm-sdk init` to relink it.
 
 - Setup environment variables (re-export `AMDGPU_TARGETS` in a new shell)
   ```
