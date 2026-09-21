@@ -88,11 +88,21 @@ if(NOT COMMAND cucim_resolve_rocm_path)
             else()
                 find_program(HIPCC_EXECUTABLE hipcc)
                 if(HIPCC_EXECUTABLE)
-                    get_filename_component(_hipcc_bin "${HIPCC_EXECUTABLE}" DIRECTORY)
+                    # Resolve symlinks first: distro packages expose
+                    # /usr/bin/hipcc -> /etc/alternatives/hipcc ->
+                    # /opt/rocm-X.Y.Z/bin/hipcc, so the unresolved path would
+                    # yield _rocm_root=/usr and break find_package(HIP).
+                    get_filename_component(_hipcc_real "${HIPCC_EXECUTABLE}" REALPATH)
+                    get_filename_component(_hipcc_bin "${_hipcc_real}" DIRECTORY)
                     get_filename_component(_rocm_root "${_hipcc_bin}" DIRECTORY)
                 else()
                     set(_rocm_root "/opt/rocm")
                 endif()
+            endif()
+            # Ignore an auto-detected root that does not hold a ROCm install.
+            # An explicit ROCM_PATH/ROCM_HOME is always honoured as given.
+            if(NOT IS_DIRECTORY "${_rocm_root}/lib/cmake/hip" AND NOT EXISTS "${_rocm_root}/bin/hipcc")
+                set(_rocm_root "/opt/rocm")
             endif()
         endif()
 
@@ -113,4 +123,25 @@ if(NOT COMMAND cucim_resolve_rocm_path)
         message(STATUS "hipCIM: using ROCM_PATH=${_rocm_root}")
         set(${out_var} "${_rocm_root}" PARENT_SCOPE)
     endfunction()
+endif()
+
+# Resolve the ROCm root, make it discoverable by find_package() and load HIP.
+# Defined as a macro (not a function) so the HIP_* variables the callers use
+# afterwards (HIP_INCLUDE_DIRS, ...) land in the caller's scope.
+if(NOT COMMAND cucim_require_hip)
+    macro(cucim_require_hip)
+        cucim_resolve_rocm_path(ROCM_PATH)
+        # Append, never overwrite: a caller-supplied CMAKE_PREFIX_PATH (-D or
+        # env) would otherwise hide the HIP package under ${ROCM_PATH}/lib/cmake
+        # and make find_package(HIP) fail on non-/opt/rocm installs.
+        list(APPEND CMAKE_PREFIX_PATH "${ROCM_PATH}")
+        list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+        find_package(HIP QUIET)
+        if(NOT HIP_FOUND)
+            message(FATAL_ERROR
+                "hipCIM: the HIP CMake package was not found under '${ROCM_PATH}'.\n"
+                "Point ROCM_PATH (or ROCM_HOME) at the ROCm root that contains lib/cmake/hip, "
+                "e.g. `export ROCM_PATH=/opt/rocm-7.2.3`, or configure with -DCMAKE_PREFIX_PATH=<rocm-root>.")
+        endif()
+    endmacro()
 endif()
