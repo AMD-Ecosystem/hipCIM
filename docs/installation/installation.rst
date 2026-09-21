@@ -39,7 +39,7 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
 
 1. Install hipCIM. There are two prebuilt options:
 
-   - If ROCm 10.0 is already available (installed at the system level or in the
+   - If ROCm 10.0.0 is already available (installed at the system level or in the
      active virtual environment), install ``amd-hipcim``. It pulls in CuPy
      (``amd-cupy``), a hipCIM dependency, from the public AMD index:
 
@@ -47,7 +47,7 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
 
       pip install amd-hipcim --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
 
-   - If ROCm 10.0 is not installed (no system ROCm and none in the virtual
+   - If ROCm 10.0.0 is not installed (no system ROCm and none in the virtual
      environment), install ``amd-hipcim[rocm]``. The ``rocm`` extra additionally
      pulls in the ROCm runtime, so provide both the CuPy and ROCm public indexes:
 
@@ -152,40 +152,37 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
 
 2. Create a Python virtual environment and install the ROCm 10.0.0 SDK from
    the public pip index. ``AMDGPU_TARGETS`` lists the architectures to build
-   for; the release targets ``gfx942`` (MI300X and MI325X) and ``gfx950``
-   (MI350X and MI355X), and each needs its own ``device-gfx*`` extra. The
-   extras carry the GPU code objects, and the SDK installs none without them.
+   for. The release targets ``gfx942`` (MI300X and MI325X) and ``gfx950``
+   (MI350X and MI355X), and both need their own ``device-gfx*`` extras, which
+   carry the GPU code objects.
 
    .. code:: shell
 
       python3 -m venv hipcim_dev
       source hipcim_dev/bin/activate
       pip install --upgrade pip
-      export AMDGPU_TARGETS="gfx942;gfx950"
       pip install "rocm[libraries,devel,device-gfx942,device-gfx950]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 
-   Confirm one device wheel per architecture is present:
+   Ensure that a wheel exists for the target architecture:
 
    .. code:: shell
 
       pip list | grep rocm-sdk-device
 
-   The command above covers both supported GPUs. To build for just one, name
-   that architecture in both places, for example ``AMDGPU_TARGETS=gfx950`` with
-   ``rocm[libraries,devel,device-gfx950]``. They have to match: the build
-   compiles for whatever ``AMDGPU_TARGETS`` lists, and an architecture with no
-   device wheel installed produces binaries that cannot run.
+   To build for a single GPU, align ``AMDGPU_TARGETS`` with the device extra.
+   For example, for a gfx950 target, use ``AMDGPU_TARGETS=gfx950`` with
+   ``rocm[libraries,devel,device-gfx950]``. Setting ``AMDGPU_TARGETS`` without
+   using its corresponding device wheel will result in binaries that won't run.
 
    If a device wheel is added or removed later, run ``rocm-sdk init`` to relink
    it.
 
-3. Set the remaining environment variable. ROCm 10.0.0 is a pip SDK, so resolve
-   its root with ``rocm-sdk``. Re-export ``AMDGPU_TARGETS`` as well in a new
-   shell.
+3. Set the environment variables.
 
    .. code:: shell
 
       export ROCM_HOME=$(rocm-sdk path --root)
+      export AMDGPU_TARGETS="gfx942;gfx950"
 
 4. Clone the repository and build hipCIM.
 
@@ -246,10 +243,8 @@ These environment variables affect a source build and a custom ROCm layout.
      - Path to the ROCm installation when ROCm 10.0.0 is a pip SDK.
    * - ``AMDGPU_TARGETS``
      - ``gfx942;gfx950``
-     - Semicolon-separated list of GPU architectures to build for, read by
-       ``run_amd`` and by ``python/cucim/setup.py`` for the wheel's ``rocm``
-       extra. Every listed architecture needs its ``rocm-sdk-device-*`` wheel
-       installed.
+     - Semicolon-separated list of GPU architectures to build for. Every listed
+       architecture needs its ``rocm-sdk-device-*`` wheel installed.
 
 Sample usage
 ============
