@@ -74,10 +74,26 @@ hipCIM supports code coverage for both C++ and Python components to help ensure 
 hipCIM includes integrated code coverage support for C++ components using LLVM coverage tools.
 
 #### Prerequisites
-Install LLVM tools for coverage analysis:
-```bash
-sudo apt update && sudo apt install -y llvm
-```
+
+Coverage needs `llvm-profdata` and `llvm-cov`, and they must be **at least as new as the ROCm clang
+that compiles hipCIM**; an older pair fails with `raw profile version mismatch`. Both tools are
+looked up on `PATH`, so make sure the matching ones come first.
+
+- ROCm installed with pip (`rocm` SDK wheels): the SDK already ships them.
+  ```bash
+  export PATH=$(rocm-sdk path --root)/lib/llvm/bin:$PATH
+  ```
+- ROCm installed system-wide (`/opt/rocm`): the packages do not include these two tools, so install
+  the LLVM release matching the ROCm clang major version and put it on `PATH`.
+  ```bash
+  # LLVM major used by ROCm (e.g. 22 for ROCm 7.2.x)
+  LLVM_MAJOR=$(${ROCM_PATH:-/opt/rocm}/lib/llvm/bin/clang --version | sed -n 's/.*clang version \([0-9]*\).*/\1/p')
+  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${LLVM_MAJOR}
+  export PATH=/usr/lib/llvm-${LLVM_MAJOR}/bin:$PATH
+  ```
+
+`sudo apt install -y llvm` installs the distribution default, which is usually too old and leads to
+`llvm-profdata: command not found` or to the version mismatch above.
 
 #### Generate Coverage Reports
 

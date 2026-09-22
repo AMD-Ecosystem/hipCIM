@@ -7,11 +7,11 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
 ### Resources
 - [hipCIM API reference](https://rocm.docs.amd.com/projects/hipCIM/en/latest/reference/hipcim/index.html#hipcim-reference)
 
-### Install hipCIM on ROCm 10.0 via AMD PyPI
+### Install hipCIM on ROCm 10.0.0 via AMD PyPI
 
 > **Note:** The prebuilt `amd-hipcim` wheels are built against the [`manylinux_2_28`](https://github.com/pypa/manylinux) standard (glibc 2.28) and repaired with `auditwheel`, so they are portable across any glibc ≥ 2.28 Linux distribution (for example Ubuntu 20.04+, Debian 10+, RHEL/AlmaLinux/Rocky 8+, and SUSE), not just Ubuntu 24.04. The Ubuntu 24.04 steps below are one convenient, tested setup; any distribution providing Python 3.12 and glibc ≥ 2.28 works.
 
-- [Optional step] ROCm 10.0 is installed from the pip index below, so a plain Ubuntu 24.04 container can be used
+- [Optional step] ROCm 10.0.0 is installed from the pip index below, so a plain Ubuntu 24.04 container can be used
 	```
 	docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true   \
          --shm-size=128GB --network=host --device=/dev/kfd     \
@@ -33,22 +33,23 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
                       python3 python3-venv python3-dev libpython3-dev cmake
 	```
 
-- Create a python3 virtual environment and install the ROCm 10.0 SDK from the public pip index
+- Create a python3 virtual environment and install the ROCm 10.0.0 SDK from the public pip index.
+  The `device-gfx*` extras carry the GPU code objects; install one per architecture in use
+  (`device-gfx942` for MI300X / MI325X, `device-gfx950` for MI350X / MI355X).
 	```
 	python3 -m venv hipcim_dev
 	source hipcim_dev/bin/activate
 	pip install --upgrade pip
-	pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+	pip install "rocm[libraries,devel,device-gfx942,device-gfx950]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+	# ensure that a wheel exists for the target architecture
+	pip list | grep rocm-sdk-device
   ```
 
 - Setup environment variables
   ```
   export ROCM_HOME=$(rocm-sdk path --root)
-  #For MI300X / MI325X (gfx942)
-  export AMDGPU_TARGETS=gfx942
-  #For MI350X / MI355X (gfx950)
-  export AMDGPU_TARGETS=gfx950
-	```
+  ```
+
 - Install hipcim. There are two options:
 
   **Option 1 — ROCm already available** (installed at the system level or via the ROCm SDK venv step above). Installs CuPy (`amd-cupy`) as a hipCIM dependency:
@@ -107,34 +108,40 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
   ```
 
 
+ - Create a sample image (`scikit-image` is installed as a hipCIM dependency and the image it ships is bundled, so nothing is downloaded)
+   ```
+   mkdir -p sample_image
+   python3 -c "from skimage import data, io; io.imsave('sample_image/sample.tif', data.astronaut())"
+   ```
+
  - Run a sample program
-   ```python3
-    from cucim import CuImage
-    img = CuImage("sample_image/oxford.tif")
-    resolutions = img.resolutions
-    level_dimensions = resolutions["level_dimensions"]
-    level_count = resolutions["level_count"]
-    print(resolutions)
-    print(level_count)
-    print(level_dimensions)
-    region = img.read_region([0,0], level_dimensions[level_count - 1], level_count - 1, device="cuda")
-    print(region.device)
+   ```python
+   from cucim import CuImage
+   img = CuImage("sample_image/sample.tif")
+   resolutions = img.resolutions
+   level_dimensions = resolutions["level_dimensions"]
+   level_count = resolutions["level_count"]
+   print(resolutions)
+   print(level_count)
+   print(level_dimensions)
+   region = img.read_region([0,0], level_dimensions[level_count - 1], level_count - 1, device="cuda")
+   print(region.device)
    ```
 
  - Output
    ```
-    {'level_count': 1, 'level_dimensions': ((601, 81),), 'level_downsamples': (1.0,), 'level_tile_sizes': ((0, 0),)}
-    1
-    ((601, 81),)
-    [Warning] Loading image('oxford.tif') with a slow-path. The pixel format of the loaded image would be RGBA (4 channels) instead of RGB!
-    cuda
+   {'level_count': 1, 'level_dimensions': ((512, 512),), 'level_downsamples': (1.0,), 'level_tile_sizes': ((0, 0),)}
+   1
+   ((512, 512),)
+   [Warning] Loading image('sample_image/sample.tif') with a slow-path. The pixel format of the loaded image would be RGBA (4 channels) instead of RGB!
+   cuda
    ```
 
 
-### Build hipCIM on ROCm 10.0 from source
+### Build hipCIM on ROCm 10.0.0 from source
 Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI325X/MI350X/MI355X system from source.
 
-- [Optional step] ROCm 10.0 is installed from the pip index below, so a plain Ubuntu 24.04 container can be used
+- [Optional step] ROCm 10.0.0 is installed from the pip index below, so a plain Ubuntu 24.04 container can be used
 	```
     docker run --cap-add=SYS_PTRACE --ipc=host --privileged=true   \
          --shm-size=128GB --network=host --device=/dev/kfd     \
@@ -163,23 +170,41 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
     cd hipCIM
     ```
 
-- Create a python3 virtual environment, install the ROCm 10.0 SDK and python dependencies
+- Create a python3 virtual environment, install the ROCm 10.0.0 SDK and python dependencies.
+  `AMDGPU_TARGETS` lists the architectures to build for. The release targets `gfx942`
+  (MI300X / MI325X) and `gfx950` (MI350X / MI355X), and both need their own `device-gfx*` extras,
+  which carry the GPU code objects.
 	```
 	python3 -m venv hipcim_dev
 	source hipcim_dev/bin/activate
 	pip install --upgrade pip
-	pip install "rocm[libraries,devel]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+	pip install "rocm[libraries,devel,device-gfx942,device-gfx950]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 	pip install -r ./requirements.txt
+	# ensure that a wheel exists for the target architecture
+	pip list | grep rocm-sdk-device
 	```
+
+  To build for a single GPU, align `AMDGPU_TARGETS` with the device extra. For example, for a
+  gfx950 target, use `AMDGPU_TARGETS=gfx950` with `rocm[libraries,devel,device-gfx950]`. Setting
+  `AMDGPU_TARGETS` without using its corresponding device wheel will result in binaries that won't
+  run.
+
+  If a device wheel is added or removed later, run `rocm-sdk init` to relink it.
 
 - Setup environment variables
   ```
   export ROCM_HOME=$(rocm-sdk path --root)
-  #For MI300X / MI325X (gfx942)
-  export AMDGPU_TARGETS=gfx942
-  #For MI350X / MI355X (gfx950)
-  export AMDGPU_TARGETS=gfx950
+  export AMDGPU_TARGETS="gfx942;gfx950"
   ```
+
+  With a system-level ROCm installation (`/opt/rocm`) instead of the pip SDK, point `ROCM_PATH` at
+  the ROCm root rather than using `rocm-sdk`:
+  ```
+  export ROCM_PATH=$(dirname $(dirname $(readlink -f $(command -v hipcc))))   # e.g. /opt/rocm-7.2.3
+  ```
+  Set this whenever the ROCm root is not detected: `hipcc` is usually reached through
+  `/usr/bin/hipcc`, and the build then derives `/usr` as the ROCm root and fails with
+  `CMake Error at CMakeLists.txt:39 (find_package)` (HIP package not found).
 
 - Build the cpp base libraries
 
