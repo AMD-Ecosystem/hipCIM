@@ -52,7 +52,7 @@ The documentation is structured as follows:
     * `hipCIM blog <https://rocm.blogs.amd.com/software-tools-optimization/hipcim-intro/README.html>`_
 
 To contribute to hipCIM, refer to
-`Contributing to hipCIM <https://github.com/ROCm-LS/hipCIM/blob/main/CONTRIBUTING.md>`_.
+`Contributing to hipCIM <https://github.com/AMD-Ecosystem/hipCIM/blob/amd-develop/CONTRIBUTING.md>`_.
 
 You can find licensing information on the
 :doc:`Licensing <license>` page.

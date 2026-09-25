@@ -22,7 +22,7 @@ into three categories:
 
 ### Your first issue
 
-1. Read the project's [README.md](https://github.com/AMD-Ecosystem/hipCIM/README.md#build-hipcim-from-source)
+1. Read the project's [README.md](https://github.com/AMD-Ecosystem/hipCIM/blob/amd-develop/README.md#build-hipcim-on-rocm-1000-from-source)
     to learn how to setup the development environment
 2. Find an issue to work on.
 3. Comment on the issue saying you are going to work on it

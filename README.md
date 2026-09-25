@@ -252,7 +252,7 @@ Quick commands:
 ## Contributing Guide
 
 Contributions to hipCIM are more than welcome!
-Please review the [CONTRIBUTING.md](https://github.com/AMD-Ecosystem/hipCIM/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
+Please review the [CONTRIBUTING.md](https://github.com/AMD-Ecosystem/hipCIM/blob/amd-develop/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
 
 ## Acknowledgments
 
