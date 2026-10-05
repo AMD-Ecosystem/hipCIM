@@ -119,8 +119,17 @@ Use a plain Ubuntu 24.04 Docker container for hipCIM.
         --device=/dev/dri --group-add video -it \
         -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
 
-2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
-   this image.
+2. Inside the container, install pip and create a Python virtual environment.
+   The ``ubuntu:24.04`` image doesn't ship pip, and its system Python is
+   externally managed, so installing into a virtual environment is required.
+
+   .. code:: shell
+
+      apt update && apt install -y python3-pip python3-venv
+      python3 -m venv hipcim_dev
+      source hipcim_dev/bin/activate
+
+3. Install ``amd-hipcim[rocm]``. ROCm isn't present in this image.
 
    .. code:: shell
 
