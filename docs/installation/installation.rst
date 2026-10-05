@@ -55,7 +55,7 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
 
       pip install "amd-hipcim[rocm]" \
         --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
 
 2. Verify the installation.
 
@@ -278,7 +278,10 @@ Sample usage
 
 ``test_data/gen_images.sh`` requires ``numpy``, ``tifffile``, and
 ``imagecodecs`` (already installed via ``requirements.txt`` for a source
-build; install them manually otherwise):
+build; install them manually otherwise). The script lives in the hipCIM
+repository, so clone it first if you installed via AMD PyPI or Docker
+(``git clone https://github.com/AMD-Ecosystem/hipCIM.git``); alternatively,
+skip the script and point ``CuImage`` at any TIFF file you already have.
 
 .. code:: shell
 
