@@ -214,7 +214,7 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
 
 .. _rocjpeg-runtime:
 
-rocJPEG and the amdgpu VA-API driver
+rocJPEG and the VA-API driver
 ======================================
 
 Whole slide image decode for SVS and TIFF runs through the ``cuslide`` plugin.
@@ -227,13 +227,29 @@ When ROCm 10.0.0 is installed from the AMD pip index, both libraries ship in
 the ROCm SDK wheels under ``_rocm_sdk_devel/lib``. hipCIM preloads them on
 import. ``cucim.clara`` preloads ``amdhip64`` and ``rocjpeg``.
 
-For a classic ``/opt/rocm`` install or a custom layout, set the following environment variables to ensure that the driver and library are in the path:
+On most single-GPU-vendor hosts this works out of the box. If ``read_region(...,
+device="cuda")`` instead fails with ``ROCJPEG_STATUS_NOT_INITIALIZED`` /
+``InitVAAPI(drm_node)`` errors, VA-API's driver auto-detection likely picked
+the wrong device — this is common on hosts with more than one VA-API-capable
+GPU (for example, an extra legacy/integrated GPU alongside the AMD Instinct
+cards). Work around it by pointing VA-API explicitly at the driver, where
+``ROCM_PATH`` is the root of your ROCm install (``$(rocm-sdk path --root)``
+for a pip SDK install, or ``/opt/rocm`` for a classic system install):
 
 .. code:: shell
 
    export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
    export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib"
    export LIBVA_DRIVER_NAME=amdgpu
+
+The correct driver name/path depends on what's installed on the host. If
+``amdgpu`` doesn't resolve the error, try the Mesa ``radeonsi`` driver from
+the ROCm SDK instead:
+
+.. code:: shell
+
+   export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib/rocm_sysdeps/lib"
+   export LIBVA_DRIVER_NAME=radeonsi
 
 Environment variables
 ======================
@@ -260,8 +276,13 @@ Sample usage
 
 ``CuImage`` opens a generated image and reads a region on the GPU.
 
+``test_data/gen_images.sh`` requires ``numpy``, ``tifffile``, and
+``imagecodecs`` (already installed via ``requirements.txt`` for a source
+build; install them manually otherwise):
+
 .. code:: shell
 
+   pip install numpy tifffile imagecodecs
    ./test_data/gen_images.sh
 
 .. code-block:: python
