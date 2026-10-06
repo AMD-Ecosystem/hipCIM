@@ -28,7 +28,7 @@ This library is an extensible toolkit designed to provide GPU accelerated I/O, c
         echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
             > /etc/apt/sources.list.d/kitware.list && \
         apt-get update && \
-        apt-get install -y git wget gcc g++ ninja-build git-lfs \
+        apt-get install -y git wget gcc g++ make ninja-build git-lfs \
                       yasm libopenslide-dev libwebp-dev libzstd-dev \
                       python3 python3-venv python3-dev libpython3-dev cmake
 	```
@@ -159,7 +159,7 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
         echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
             > /etc/apt/sources.list.d/kitware.list && \
         apt-get update && \
-        apt-get install -y git wget gcc g++ ninja-build git-lfs \
+        apt-get install -y git wget gcc g++ make ninja-build git-lfs \
                       yasm libopenslide-dev libwebp-dev libzstd-dev \
                       python3 python3-venv python3-dev libpython3-dev cmake
 	```
@@ -239,6 +239,35 @@ Please use the below steps to build the hipCIM library on a ROCm based MI300X/MI
   ```bash
   ./run_amd test_python
   ```
+
+
+### Troubleshooting rocJPEG and VA-API
+
+GPU decode of SVS/TIFF whole slide images goes through rocJPEG, which decodes on the VCN engine
+via VA-API. If `read_region(..., device="cuda")` fails with `InitVAAPI(drm_node) returned
+ROCJPEG_STATUS_NOT_INITIALIZED`, libva could not load its backend driver. Point it at the driver
+ROCm ships:
+
+```bash
+export LIBVA_DRIVERS_PATH="$(rocm-sdk path --root)/lib/rocm_sysdeps/lib"   # pip SDK
+export LIBVA_DRIVERS_PATH="/opt/rocm/core-10.0/lib/rocm_sysdeps/lib"       # apt / ROCm image
+```
+
+This variable is needed because libva `dlopen`s `<driver>_drv_video.so` from a directory fixed
+when libva was built (`/usr/lib/x86_64-linux-gnu/dri`), which `LD_LIBRARY_PATH` does not affect.
+The only compatible driver is ROCm's own `radeonsi_drv_video.so`: ROCm vendors libva 1.22 and
+requires `__vaDriverInit_1_22`, while Ubuntu 24.04's Mesa driver exports `__vaDriverInit_1_20`.
+`LD_LIBRARY_PATH` and `LIBVA_DRIVER_NAME` are not needed — and `LIBVA_DRIVER_NAME=amdgpu` breaks
+the lookup, because ROCm ships no `amdgpu_drv_video.so`.
+
+If that alone doesn't resolve it:
+
+- `/dev/dri` isn't passed to the container (`--device=/dev/dri`), or the container user isn't in
+  the `render` group that owns `/dev/dri/renderD*`
+  (`--group-add "$(getent group render | cut -d: -f3)"`; `video` only covers the `card*` nodes).
+- rocJPEG always decodes on device 0, that is `/dev/dri/renderD128`, regardless of
+  `HIP_VISIBLE_DEVICES`, so a legacy or integrated GPU enumerating first fails initialization.
+- The host exposes no VCN JPEG engine, which is common on SR-IOV guests. No variable helps there.
 
 
 ### Code Coverage

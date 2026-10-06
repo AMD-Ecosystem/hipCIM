@@ -155,7 +155,7 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
       echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
           > /etc/apt/sources.list.d/kitware.list && \
       apt-get update && \
-      apt-get install -y git wget gcc g++ ninja-build git-lfs \
+      apt-get install -y git wget gcc g++ make ninja-build git-lfs \
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
                      python3 python3-venv python3-dev libpython3-dev cmake
 
@@ -227,29 +227,22 @@ When ROCm 10.0.0 is installed from the AMD pip index, both libraries ship in
 the ROCm SDK wheels under ``_rocm_sdk_devel/lib``. hipCIM preloads them on
 import. ``cucim.clara`` preloads ``amdhip64`` and ``rocjpeg``.
 
-On most single-GPU-vendor hosts this works out of the box. If ``read_region(...,
-device="cuda")`` instead fails with ``ROCJPEG_STATUS_NOT_INITIALIZED`` /
-``InitVAAPI(drm_node)`` errors, VA-API's driver auto-detection likely picked
-the wrong device — this is common on hosts with more than one VA-API-capable
-GPU (for example, an extra legacy/integrated GPU alongside the AMD Instinct
-cards). Work around it by pointing VA-API explicitly at the driver, where
-``ROCM_PATH`` is the root of your ROCm install (``$(rocm-sdk path --root)``
-for a pip SDK install, or ``/opt/rocm`` for a classic system install):
-
-.. code:: shell
-
-   export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-   export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib"
-   export LIBVA_DRIVER_NAME=amdgpu
-
-The correct driver name/path depends on what's installed on the host. If
-``amdgpu`` doesn't resolve the error, try the Mesa ``radeonsi`` driver from
-the ROCm SDK instead:
+If ``read_region(..., device="cuda")`` fails with
+``InitVAAPI(drm_node) returned ROCJPEG_STATUS_NOT_INITIALIZED``, libva could
+not load its backend driver. libva looks for the driver in a directory fixed
+when libva was built, so point it at the one shipped in the ROCm SDK wheel,
+where ``ROCM_PATH`` is the root of your ROCm install
+(``$(rocm-sdk path --root)`` for a pip SDK install, or ``/opt/rocm`` for a
+classic system install):
 
 .. code:: shell
 
    export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib/rocm_sysdeps/lib"
-   export LIBVA_DRIVER_NAME=radeonsi
+
+See `Troubleshooting rocJPEG and VA-API
+<https://github.com/AMD-Ecosystem/hipCIM#troubleshooting-rocjpeg-and-va-api>`_
+in the repository README for the background and for other causes of this
+error.
 
 Environment variables
 ======================
