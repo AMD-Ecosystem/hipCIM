@@ -59,6 +59,22 @@ init_globals() {
     # loader path (e.g. googlebenchmark's regex backend detection). Prepend it
     # while preserving any existing LD_LIBRARY_PATH.
     export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+    # Point libva at ROCm's VA-API driver, which rocJPEG needs for GPU decode.
+    # libva dlopens "<name>_drv_video.so" from a directory fixed when libva was
+    # built, so LD_LIBRARY_PATH cannot reach the copy ROCm vendors; without this
+    # the C++ tests hit ROCJPEG_STATUS_NOT_INITIALIZED. libva derives the name
+    # from LIBVA_DRIVER_NAME or its amdgpu->radeonsi map. A caller's value wins.
+    if [ -z "${LIBVA_DRIVERS_PATH:-}" ]; then
+        local _va_dir="${ROCM_PATH}/lib/rocm_sysdeps/lib" _va_name
+        # Unquoted on purpose: the default is a list of candidate names.
+        for _va_name in ${LIBVA_DRIVER_NAME:-radeonsi amdgpu}; do
+            if [ -f "${_va_dir}/${_va_name}_drv_video.so" ]; then
+                export LIBVA_DRIVERS_PATH="${_va_dir}"
+                break
+            fi
+        done
+    fi
 }
 
 ################################################################################
