@@ -55,7 +55,7 @@ Packaged versions of hipCIM and its dependencies are distributed via `AMD PyPI <
 
       pip install "amd-hipcim[rocm]" \
         --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/ \
-        --extra-index-url=https://repo.amd.com/rocm/whl-multi-arch/
+        --extra-index-url=https://stable.repo.amd.com/rocm/whl-next/
 
 2. Verify the installation.
 
@@ -119,8 +119,17 @@ Use a plain Ubuntu 24.04 Docker container for hipCIM.
         --device=/dev/dri --group-add video -it \
         -v $HOME:$HOME --name ${LOGNAME}_rocm ubuntu:24.04
 
-2. Inside the container, install ``amd-hipcim[rocm]``. ROCm isn't present in
-   this image.
+2. Inside the container, install pip and create a Python virtual environment.
+   The ``ubuntu:24.04`` image doesn't ship pip, and its system Python is
+   externally managed, so installing into a virtual environment is required.
+
+   .. code:: shell
+
+      apt update && apt install -y python3-pip python3-venv
+      python3 -m venv hipcim_dev
+      source hipcim_dev/bin/activate
+
+3. Install ``amd-hipcim[rocm]``. ROCm isn't present in this image.
 
    .. code:: shell
 
@@ -146,7 +155,7 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
       echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
           > /etc/apt/sources.list.d/kitware.list && \
       apt-get update && \
-      apt-get install -y git wget gcc g++ ninja-build git-lfs \
+      apt-get install -y git wget gcc g++ make ninja-build git-lfs \
                      yasm libopenslide-dev libwebp-dev libzstd-dev \
                      python3 python3-venv python3-dev libpython3-dev cmake
 
@@ -205,7 +214,7 @@ To build hipCIM from source, follow the steps given in this section. hipCIM deve
 
 .. _rocjpeg-runtime:
 
-rocJPEG and the amdgpu VA-API driver
+rocJPEG and the VA-API driver
 ======================================
 
 Whole slide image decode for SVS and TIFF runs through the ``cuslide`` plugin.
@@ -218,13 +227,22 @@ When ROCm 10.0.0 is installed from the AMD pip index, both libraries ship in
 the ROCm SDK wheels under ``_rocm_sdk_devel/lib``. hipCIM preloads them on
 import. ``cucim.clara`` preloads ``amdhip64`` and ``rocjpeg``.
 
-For a classic ``/opt/rocm`` install or a custom layout, set the following environment variables to ensure that the driver and library are in the path:
+If ``read_region(..., device="cuda")`` fails with
+``InitVAAPI(drm_node) returned ROCJPEG_STATUS_NOT_INITIALIZED``, libva could
+not load its backend driver. libva looks for the driver in a directory fixed
+when libva was built, so point it at the one shipped in the ROCm SDK wheel,
+where ``ROCM_PATH`` is the root of your ROCm install
+(``$(rocm-sdk path --root)`` for a pip SDK install, or ``/opt/rocm`` for a
+classic system install):
 
 .. code:: shell
 
-   export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-   export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib"
-   export LIBVA_DRIVER_NAME=amdgpu
+   export LIBVA_DRIVERS_PATH="${ROCM_PATH}/lib/rocm_sysdeps/lib"
+
+See `Troubleshooting rocJPEG and VA-API
+<https://github.com/AMD-Ecosystem/hipCIM#troubleshooting-rocjpeg-and-va-api>`_
+in the repository README for the background and for other causes of this
+error.
 
 Environment variables
 ======================
@@ -251,8 +269,16 @@ Sample usage
 
 ``CuImage`` opens a generated image and reads a region on the GPU.
 
+``test_data/gen_images.sh`` requires ``numpy``, ``tifffile``, and
+``imagecodecs`` (already installed via ``requirements.txt`` for a source
+build; install them manually otherwise). The script lives in the hipCIM
+repository, so clone it first if you installed via AMD PyPI or Docker
+(``git clone https://github.com/AMD-Ecosystem/hipCIM.git``); alternatively,
+skip the script and point ``CuImage`` at any TIFF file you already have.
+
 .. code:: shell
 
+   pip install numpy tifffile imagecodecs
    ./test_data/gen_images.sh
 
 .. code-block:: python
