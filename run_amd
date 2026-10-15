@@ -27,15 +27,27 @@ init_globals() {
     # Resolve the ROCm root dynamically so the hardcoded /opt/rocm is only a last
     # resort. Order: ROCM_PATH > ROCM_HOME > `rocm-sdk path --root` > `hipcc`
     # location > /opt/rocm. Covers pip/venv (TheRock), tarball and system installs.
+    local _rocm_path_explicit=0
+    [ -n "${ROCM_PATH:-}" ] && _rocm_path_explicit=1
     if [ -z "${ROCM_PATH:-}" ]; then
         if [ -n "${ROCM_HOME:-}" ]; then
             ROCM_PATH="${ROCM_HOME}"
+            _rocm_path_explicit=1
         elif command -v rocm-sdk >/dev/null 2>&1; then
             ROCM_PATH="$(rocm-sdk path --root 2>/dev/null || true)"
         fi
     fi
     if [ -z "${ROCM_PATH:-}" ] && command -v hipcc >/dev/null 2>&1; then
-        ROCM_PATH="$(dirname "$(dirname "$(command -v hipcc)")")"
+        # Resolve symlinks first: distro packages expose /usr/bin/hipcc ->
+        # /etc/alternatives/hipcc -> /opt/rocm-X.Y.Z/bin/hipcc, so using the
+        # unresolved path would yield ROCM_PATH=/usr and break find_package(HIP).
+        ROCM_PATH="$(dirname "$(dirname "$(readlink -f "$(command -v hipcc)")")")"
+    fi
+    # Ignore an auto-detected root that does not hold a ROCm install; an
+    # explicit ROCM_PATH/ROCM_HOME is always honoured as given.
+    if [ "${_rocm_path_explicit}" -eq 0 ] && [ -n "${ROCM_PATH:-}" ] &&
+       [ ! -d "${ROCM_PATH}/lib/cmake/hip" ] && [ ! -x "${ROCM_PATH}/bin/hipcc" ]; then
+        ROCM_PATH=""
     fi
     [ -z "${ROCM_PATH:-}" ] && ROCM_PATH="/opt/rocm"
     export ROCM_PATH
@@ -47,6 +59,22 @@ init_globals() {
     # loader path (e.g. googlebenchmark's regex backend detection). Prepend it
     # while preserving any existing LD_LIBRARY_PATH.
     export LD_LIBRARY_PATH="${ROCM_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+    # Point libva at ROCm's VA-API driver, which rocJPEG needs for GPU decode.
+    # libva dlopens "<name>_drv_video.so" from a directory fixed when libva was
+    # built, so LD_LIBRARY_PATH cannot reach the copy ROCm vendors; without this
+    # the C++ tests hit ROCJPEG_STATUS_NOT_INITIALIZED. libva derives the name
+    # from LIBVA_DRIVER_NAME or its amdgpu->radeonsi map. A caller's value wins.
+    if [ -z "${LIBVA_DRIVERS_PATH:-}" ]; then
+        local _va_dir="${ROCM_PATH}/lib/rocm_sysdeps/lib" _va_name
+        # Unquoted on purpose: the default is a list of candidate names.
+        for _va_name in ${LIBVA_DRIVER_NAME:-radeonsi amdgpu}; do
+            if [ -f "${_va_dir}/${_va_name}_drv_video.so" ]; then
+                export LIBVA_DRIVERS_PATH="${_va_dir}"
+                break
+            fi
+        done
+    fi
 }
 
 ################################################################################
@@ -998,6 +1026,66 @@ difflist-python.txt are absent; if present, coverage is scoped to those diff fil
 '
 }
 
+#######################################
+# Resolve llvm-profdata/llvm-cov matching the ROCm clang that instrumented the
+# build and export them as LLVM_PROFDATA / LLVM_COV.
+#
+# The profiles are written by the ROCm clang runtime, so the tools must be at
+# least as new as that clang: an older LLVM rejects them with "raw profile
+# version mismatch". ROCm itself does not ship llvm-profdata/llvm-cov, so the
+# versioned distro binaries for the ROCm clang major are preferred, then an
+# unversioned one on PATH (best effort).
+#
+# Globals:
+#   ROCM_PATH
+# Returns:
+#   0 when both tools were found, 1 (with an actionable message) otherwise.
+#######################################
+resolve_llvm_tools_() {
+    local dir clang_major=""
+    LLVM_PROFDATA=""
+    LLVM_COV=""
+
+    # LLVM major of the ROCm clang used to instrument the build (e.g. 22).
+    for dir in "${ROCM_PATH}/lib/llvm/bin" "${ROCM_PATH}/llvm/bin" /opt/rocm/lib/llvm/bin; do
+        if [ -x "${dir}/clang" ]; then
+            clang_major="$("${dir}/clang" --version 2>/dev/null | sed -n 's/.*clang version \([0-9]*\).*/\1/p' | head -1)"
+            break
+        fi
+    done
+
+    for dir in "${ROCM_PATH}/lib/llvm/bin" "${ROCM_PATH}/llvm/bin" /opt/rocm/lib/llvm/bin \
+               ${clang_major:+"/usr/lib/llvm-${clang_major}/bin"} /usr/bin; do
+        [ -z "${LLVM_PROFDATA}" ] && [ -x "${dir}/llvm-profdata" ] && LLVM_PROFDATA="${dir}/llvm-profdata"
+        [ -z "${LLVM_COV}" ] && [ -x "${dir}/llvm-cov" ] && LLVM_COV="${dir}/llvm-cov"
+    done
+    if [ -n "${clang_major}" ]; then
+        [ -z "${LLVM_PROFDATA}" ] && [ -x "/usr/bin/llvm-profdata-${clang_major}" ] && LLVM_PROFDATA="/usr/bin/llvm-profdata-${clang_major}"
+        [ -z "${LLVM_COV}" ] && [ -x "/usr/bin/llvm-cov-${clang_major}" ] && LLVM_COV="/usr/bin/llvm-cov-${clang_major}"
+    fi
+    [ -z "${LLVM_PROFDATA}" ] && LLVM_PROFDATA="$(command -v llvm-profdata 2>/dev/null)"
+    [ -z "${LLVM_COV}" ] && LLVM_COV="$(command -v llvm-cov 2>/dev/null)"
+
+    if [ -z "${LLVM_PROFDATA}" ] || [ -z "${LLVM_COV}" ]; then
+        c_echo_err R "llvm-profdata/llvm-cov not found (searched \${ROCM_PATH}/lib/llvm/bin, /opt/rocm/lib/llvm/bin, /usr/lib/llvm-${clang_major:-<ver>}/bin, PATH)."
+        c_echo_err R "Install LLVM ${clang_major:-matching the ROCm clang}, e.g.:"
+        c_echo_err R "  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${clang_major:-<ver>}"
+        c_echo_err R "An older LLVM cannot be used: llvm-profdata fails with 'raw profile version mismatch'."
+        return 1
+    fi
+
+    # Warn (do not fail) on a version skew: the merge below is what really
+    # decides, and a newer tool can still read older raw profiles.
+    local tool_major
+    tool_major="$("${LLVM_PROFDATA}" --version 2>/dev/null | sed -n 's/.*LLVM version \([0-9]*\).*/\1/p' | head -1)"
+    if [ -n "${clang_major}" ] && [ -n "${tool_major}" ] && [ "${tool_major}" -lt "${clang_major}" ]; then
+        c_echo Y "⚠ ${LLVM_PROFDATA} is LLVM ${tool_major} but the code was instrumented by ROCm clang ${clang_major}; expect 'raw profile version mismatch'."
+    fi
+
+    export LLVM_PROFDATA LLVM_COV
+    c_echo G "Using ${LLVM_PROFDATA} and ${LLVM_COV}"
+}
+
 test_cpp_coverage() {
     local build_type="${1:-debug}"
     local build_type_str="Debug"
@@ -1019,30 +1107,8 @@ test_cpp_coverage() {
     c_echo G "Generating coverage report..."
     cd ${TOP}
 
-    # Find LLVM tools — prefer the versioned LLVM 20 binaries installed by the
-    # official llvm.sh script. Otherwise fall back to the ROCm SDK's own llvm
-    # binaries (${ROCM_PATH}/lib/llvm/bin), which match the LLVM version of the
-    # ROCm clang that instruments the C++ (required for the pip ROCm SDK, where
-    # there is no /opt/rocm), then to whatever else is on PATH.
-    LLVM_PROFDATA="/usr/bin/llvm-profdata-20"
-    if [ ! -f "${LLVM_PROFDATA}" ]; then
-        for dir in ${ROCM_PATH}/lib/llvm/bin /opt/rocm/llvm/bin /opt/rocm/bin /usr/bin; do
-            if [ -f "${dir}/llvm-profdata" ]; then
-                LLVM_PROFDATA="${dir}/llvm-profdata"
-                break
-            fi
-        done
-    fi
-
-    LLVM_COV="/usr/bin/llvm-cov-20"
-    if [ ! -f "${LLVM_COV}" ]; then
-        for dir in ${ROCM_PATH}/lib/llvm/bin /opt/rocm/llvm/bin /opt/rocm/bin /usr/bin; do
-            if [ -f "${dir}/llvm-cov" ]; then
-                LLVM_COV="${dir}/llvm-cov"
-                break
-            fi
-        done
-    fi
+    # Find LLVM tools — must match the ROCm clang that instrumented the build.
+    resolve_llvm_tools_ || return 1
 
     # Merge profile data
     find . -type f -name "*.profraw" > rawprofiles.list
@@ -1177,21 +1243,8 @@ cpp_coverage() {
     c_echo G "Generating coverage report..."
     cd ${TOP}
 
-    # Find LLVM tools
-    LLVM_COV=""
-    LLVM_PROFDATA=""
-    for dir in /opt/rocm/llvm/bin /opt/rocm/bin /usr/bin; do
-        if [ -f "${dir}/llvm-cov" ]; then
-            LLVM_COV="${dir}/llvm-cov"
-            LLVM_PROFDATA="${dir}/llvm-profdata"
-            break
-        fi
-    done
-
-    if [ -z "${LLVM_COV}" ]; then
-        LLVM_COV="llvm-cov"
-        LLVM_PROFDATA="llvm-profdata"
-    fi
+    # Find LLVM tools — must match the ROCm clang that instrumented the build.
+    resolve_llvm_tools_ || return 1
 
     # Merge profile data
     find . -type f -name "*.profraw" > rawprofiles.list
@@ -1200,7 +1253,12 @@ cpp_coverage() {
         return 1
     fi
 
-    ${LLVM_PROFDATA} merge --sparse --input-files=rawprofiles.list --output=merged.profdata
+    if ! ${LLVM_PROFDATA} merge --sparse --input-files=rawprofiles.list --output=merged.profdata; then
+        c_echo_err R "llvm-profdata merge failed. On a 'raw profile version mismatch' the tool is older than the"
+        c_echo_err R "ROCm clang that built the code: use \${ROCM_PATH}/lib/llvm/bin/llvm-profdata."
+        rm -f rawprofiles.list
+        return 1
+    fi
 
     # Find objects
     OBJECTS=""

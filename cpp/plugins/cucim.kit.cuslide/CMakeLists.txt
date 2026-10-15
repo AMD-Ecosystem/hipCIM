@@ -64,9 +64,11 @@ endif()
 
 # Find CUDAToolkit
 #find_package(CUDAToolkit REQUIRED)
-find_package(HIP REQUIRED)
+# Resolve the ROCm root (and put its libs on LD_LIBRARY_PATH for HIP try_run
+# probes), then load HIP. cucim_require_hip is defined in CuCIMUtils (included
+# above) and also sets ROCM_PATH, used further below.
+cucim_require_hip()
 # For Threads::Threads
-find_package(HIP REQUIRED)
 find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -78,10 +80,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 # Disable visibility to not expose unnecessary symbols
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
-
-# Resolve the ROCm root (and put its libs on LD_LIBRARY_PATH for HIP try_run
-# probes). cucim_resolve_rocm_path is defined in CuCIMUtils (included above).
-cucim_resolve_rocm_path(ROCM_PATH)
 
 # Set RPATH so libraries resolve their ROCm dependencies across install layouts
 # (pip/venv wheels via $ORIGIN, build-time ROCm root, and system /opt/rocm).

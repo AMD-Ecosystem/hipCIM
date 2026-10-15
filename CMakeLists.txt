@@ -27,17 +27,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cpp/cmake/modules")
 project(libcucim VERSION ${VERSION} DESCRIPTION "libcucim" LANGUAGES CXX)
 
 # Resolve the ROCm root (and put its libs on LD_LIBRARY_PATH for HIP try_run
-# probes). Defined in CuCIMUtils; included early here as it is needed before
-# find_package(HIP) below.
+# probes), then load HIP. Defined in CuCIMUtils; included early here as it is
+# needed before the HIP language is enabled below.
 include(CuCIMUtils)
-cucim_resolve_rocm_path(ROCM_PATH)
-
-# Set CMAKE_PREFIX_PATH for ROCm/HIP if not already set
-if(NOT DEFINED CMAKE_PREFIX_PATH)
-    set(CMAKE_PREFIX_PATH "${ROCM_PATH}")
-endif()
-
-find_package(HIP REQUIRED)
+cucim_require_hip()
 enable_language(HIP)
 include_directories(${HIP_INCLUDE_DIRS})
 
